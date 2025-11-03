@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理系统 - 控制台</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/home.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>管理系统</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#" data-page="dashboard" class="nav-link active">
+                        <span class="icon">📊</span> 控制台
+                    </a></li>
+                    <li><a href="#" data-page="users" class="nav-link">
+                        <span class="icon">👥</span> 用户管理
+                    </a></li>
+                    <li><a href="#" data-page="product-types" class="nav-link">
+                        <span class="icon">📦</span> 商品类型
+                    </a></li>
+                    <li><a href="#" data-page="products" class="nav-link">
+                        <span class="icon">🛍️</span> 商品管理
+                    </a></li>
+                    <li class="admin-section" id="adminSection" style="display: none;">
+                        <div class="nav-divider">管理员功能</div>
+                        <a href="#" data-page="roles" class="nav-link">
+                            <span class="icon">🔐</span> 角色管理
+                        </a>
+                        <a href="#" data-page="security" class="nav-link">
+                            <span class="icon">🛡️</span> 安全配置
+                        </a>
+                        <a href="#" data-page="redis" class="nav-link">
+                            <span class="icon">🗄️</span> Redis管理
+                        </a>
+                    </li>
+                    <li><a href="#" data-page="test" class="nav-link">
+                        <span class="icon">🧪</span> 接口测试
+                    </a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 顶部导航 -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+                </div>
+                <div class="header-right">
+                    <div class="user-info">
+                        <span id="currentUsername">-</span>
+                        <span class="user-role" id="currentRole">-</span>
+                    </div>
+                    <button class="btn btn-sm" id="refreshTokenBtn">刷新Token</button>
+                    <button class="btn btn-sm btn-danger" id="logoutBtn">退出</button>
+                </div>
+            </header>
+
+            <!-- 页面内容 -->
+            <div class="content-area" id="contentArea">
+                <!-- 默认显示控制台 -->
+                <div id="dashboard" class="page active">
+                    <div class="page-header">
+                        <h2>控制台</h2>
+                        <p>系统概览和统计信息</p>
+                    </div>
+                    <div class="dashboard-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-content">
+                                <h3 id="userCount">-</h3>
+                                <p>用户总数</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">📦</div>
+                            <div class="stat-content">
+                                <h3 id="productTypeCount">-</h3>
+                                <p>商品类型</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🛍️</div>
+                            <div class="stat-content">
+                                <h3 id="productCount">-</h3>
+                                <p>商品总数</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-content">
+                                <h3 id="activeProductCount">-</h3>
+                                <p>启用商品</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 用户管理页面 -->
+                <div id="users" class="page">
+                    <div class="page-header">
+                        <h2>用户管理</h2>
+                        <button class="btn btn-primary" id="addUserBtn">新增用户</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>用户名</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr><td colspan="4" class="loading">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 商品类型管理页面 -->
+                <div id="product-types" class="page">
+                    <div class="page-header">
+                        <h2>商品类型管理</h2>
+                        <button class="btn btn-primary" id="addProductTypeBtn">新增类型</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="productTypesTable">
+                            <thead>
+                                <tr>
+                                    <th>类型名称</th>
+                                    <th>类型代码</th>
+                                    <th>描述</th>
+                                    <th>排序</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productTypesTableBody">
+                                <tr><td colspan="6" class="loading">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 商品管理页面 -->
+                <div id="products" class="page">
+                    <div class="page-header">
+                        <h2>商品管理</h2>
+                        <button class="btn btn-primary" id="addProductBtn">新增商品</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="productsTable">
+                            <thead>
+                                <tr>
+                                    <th>商品名称</th>
+                                    <th>商品代码</th>
+                                    <th>类型</th>
+                                    <th>价格</th>
+                                    <th>库存</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTableBody">
+                                <tr><td colspan="7" class="loading">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 角色管理页面（管理员） -->
+                <div id="roles" class="page">
+                    <div class="page-header">
+                        <h2>角色管理</h2>
+                        <button class="btn btn-primary" id="addRoleBtn">新增角色</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="rolesTable">
+                            <thead>
+                                <tr>
+                                    <th>角色名称</th>
+                                    <th>角色代码</th>
+                                    <th>描述</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rolesTableBody">
+                                <tr><td colspan="4" class="loading">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 安全配置页面（管理员） -->
+                <div id="security" class="page">
+                    <div class="page-header">
+                        <h2>安全配置</h2>
+                    </div>
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="whitelist">白名单</button>
+                        <button class="tab-btn" data-tab="permission">权限</button>
+                    </div>
+                    <div class="tab-content active" id="whitelistTab">
+                        <div class="table-container">
+                            <table class="data-table" id="whitelistTable">
+                                <thead>
+                                    <tr>
+                                        <th>路径</th>
+                                        <th>描述</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="whitelistTableBody">
+                                    <tr><td colspan="3" class="loading">加载中...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-content" id="permissionTab">
+                        <div class="table-container">
+                            <table class="data-table" id="permissionTable">
+                                <thead>
+                                    <tr>
+                                        <th>权限名称</th>
+                                        <th>权限代码</th>
+                                        <th>描述</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="permissionTableBody">
+                                    <tr><td colspan="4" class="loading">加载中...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Redis管理页面（管理员） -->
+                <div id="redis" class="page">
+                    <div class="page-header">
+                        <h2>Redis管理</h2>
+                    </div>
+                    <div class="redis-info">
+                        <div class="info-card">
+                            <h3>Redis信息</h3>
+                            <div id="redisInfo">加载中...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 接口测试页面 -->
+                <div id="test" class="page">
+                    <div class="page-header">
+                        <h2>接口测试</h2>
+                        <button class="btn btn-primary" id="runAllTestsBtn">运行所有测试</button>
+                    </div>
+                    <div class="test-results" id="testResults"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 模态框容器 -->
+    <div id="modalContainer"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/users.js"></script>
+    <script src="js/product-types.js"></script>
+    <script src="js/products.js"></script>
+    <script src="js/roles.js"></script>
+    <script src="js/security.js"></script>
+    <script src="js/redis.js"></script>
+    <script src="js/test.js"></script>
+    <script src="js/home.js"></script>
+</body>
+</html>
+

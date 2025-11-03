@@ -1,0 +1,65 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: demo-springboot
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/demo
+    username: postgres
+    password: 123456
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      validation-query: SELECT 1
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:  # Redis密码，如果没有设置密码则留空
+      database: 0  # 使用的数据库索引，默认0
+      timeout: 5000  # 连接超时时间（毫秒）
+      lettuce:
+        pool:
+          max-active: 8  # 连接池最大连接数
+          max-idle: 8    # 连接池最大空闲连接数
+          min-idle: 0    # 连接池最小空闲连接数
+          max-wait: -1   # 连接池最大阻塞等待时间（-1表示没有限制）
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  # mapper-locations: classpath:mapper/*.xml  # 如果没有 mapper XML 文件，可以注释掉
+  type-aliases-package: com.example.demo.entity
+  global-config:
+    db-config:
+      id-type: assign_id
+      table-underline: true
+
+# JWT配置（保留用于兼容，但实际使用Redis Token）
+jwt:
+  secret: demospringbootsecretkey123456789012345678901234567890
+  expiration: 86400000  # 24小时（毫秒）
+
+# Token配置
+token:
+  length: 32  # Token长度（32位随机值）
+  expire-time: 1800  # Token过期时间（秒），30分钟
+  refresh-interval: 1800  # Token刷新间隔（秒），30分钟内无刷新则失效
+  ip-max-users: 5  # 每个IP最多允许同时登录的用户数
+
+# 角色缓存配置
+role:
+  cache:
+    expire-time: 604800  # 角色缓存过期时间（秒），默认7天
+

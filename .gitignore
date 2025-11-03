@@ -1,0 +1,74 @@
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build output
+target/
+build/
+out/
+bin/
+*.class
+*.jar
+*.war
+*.ear
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot
+*.jar.original
+spring-boot-*.jar
+
+# Node modules (if any)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Package files
+*.rar
+*.zip
+*.tar.gz
+*.7z
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.cache
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Compiled files
+*.pyc
+__pycache__/
+
