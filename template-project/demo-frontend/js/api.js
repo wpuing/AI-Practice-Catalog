@@ -214,7 +214,12 @@ class ApiClient {
      * 刷新Token
      */
     async refreshToken() {
-        return this.post('/auth/refresh');
+        const response = await this.post('/auth/refresh');
+        // 如果刷新成功，更新token（虽然token值不变，但刷新时间会更新）
+        if (response.code === 200 && response.data && response.data.token) {
+            this.setToken(response.data.token);
+        }
+        return response;
     }
 
     /**
@@ -470,70 +475,70 @@ class ApiClient {
      * 获取所有白名单
      */
     async getWhitelist() {
-        return this.get('/security/whitelist');
+        return this.get('/security/config/whitelist');
     }
 
     /**
      * 添加白名单
      */
     async createWhitelist(whitelistData) {
-        return this.post('/security/whitelist', whitelistData);
+        return this.post('/security/config/whitelist', whitelistData);
     }
 
     /**
      * 更新白名单
      */
     async updateWhitelist(id, whitelistData) {
-        return this.put(`/security/whitelist/${id}`, whitelistData);
+        return this.put(`/security/config/whitelist/${id}`, whitelistData);
     }
 
     /**
      * 删除白名单
      */
     async deleteWhitelist(id) {
-        return this.delete(`/security/whitelist/${id}`);
+        return this.delete(`/security/config/whitelist/${id}`);
     }
 
     /**
-     * 刷新白名单缓存
+     * 刷新安全配置缓存
      */
     async refreshWhitelist() {
-        return this.post('/security/whitelist/refresh');
+        return this.post('/security/config/refresh');
     }
 
     /**
      * 获取所有权限
      */
     async getPermissions() {
-        return this.get('/security/permission');
+        return this.get('/security/config/permission');
     }
 
     /**
      * 添加权限
      */
     async createPermission(permissionData) {
-        return this.post('/security/permission', permissionData);
+        return this.post('/security/config/permission', permissionData);
     }
 
     /**
      * 更新权限
      */
     async updatePermission(id, permissionData) {
-        return this.put(`/security/permission/${id}`, permissionData);
+        return this.put(`/security/config/permission/${id}`, permissionData);
     }
 
     /**
      * 删除权限
      */
     async deletePermission(id) {
-        return this.delete(`/security/permission/${id}`);
+        return this.delete(`/security/config/permission/${id}`);
     }
 
     /**
-     * 刷新权限缓存
+     * 刷新安全配置缓存
      */
     async refreshPermissions() {
-        return this.post('/security/permission/refresh');
+        return this.post('/security/config/refresh');
     }
 
     // ========== Redis管理接口 ==========

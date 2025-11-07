@@ -4,6 +4,12 @@ server:
 spring:
   application:
     name: demo-springboot
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false  # 禁用将日期写为时间戳，使用ISO-8601格式
+    deserialization:
+      fail-on-unknown-properties: false  # 忽略未知属性
+    default-property-inclusion: non_null  # 不序列化null值
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: org.postgresql.Driver

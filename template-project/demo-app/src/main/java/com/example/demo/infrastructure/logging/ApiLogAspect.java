@@ -8,6 +8,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -28,7 +29,15 @@ public class ApiLogAspect {
 
     private static final Logger log = LoggerFactory.getLogger(ApiLogAspect.class);
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    /**
+     * 注入配置好的 ObjectMapper Bean，确保支持 Java 8 时间类型
+     */
+    @Autowired
+    public ApiLogAspect(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * 定义切点：拦截所有 Controller 的方法

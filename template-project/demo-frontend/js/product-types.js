@@ -111,6 +111,16 @@ async function editProductType(id = null) {
         data.enabled = data.enabled === 'true';
         data.sortOrder = parseInt(data.sortOrder) || 0;
 
+        // 显示确认模态框
+        const confirmed = await showConfirmModal(
+            id ? '确认更新' : '确认创建',
+            id ? `确定要更新商品类型 "${data.typeName || data.typeCode}" 吗？` : `确定要创建商品类型 "${data.typeName || data.typeCode}" 吗？`
+        );
+        
+        if (!confirmed) {
+            return;
+        }
+
         try {
             const submitBtn = formEl.querySelector('button[type="submit"]');
             const originalText = submitBtn.textContent;
@@ -124,7 +134,9 @@ async function editProductType(id = null) {
                 response = await api.createProductType(data);
             }
 
-            if (response.code === 200) {
+            // 兼容两种响应格式
+            const isSuccess = response.code === 200 || (response.success === true);
+            if (isSuccess) {
                 showMessage(id ? '更新成功' : '创建成功', 'success');
                 closeModal();
                 loadProductTypes(productTypesPage);
@@ -148,13 +160,20 @@ async function editProductType(id = null) {
  * 删除商品类型
  */
 async function deleteProductType(id, typeName) {
-    if (!confirm(`确定要删除商品类型 "${typeName}" 吗？`)) {
+    const confirmed = await showConfirmModal(
+        '确认删除',
+        `确定要删除商品类型 "${typeName}" 吗？此操作不可恢复。`
+    );
+    
+    if (!confirmed) {
         return;
     }
 
     try {
         const response = await api.deleteProductType(id);
-        if (response.code === 200) {
+        // 兼容两种响应格式
+        const isSuccess = response.code === 200 || (response.success === true);
+        if (isSuccess) {
             showMessage('删除成功', 'success');
             loadProductTypes(productTypesPage);
         } else {

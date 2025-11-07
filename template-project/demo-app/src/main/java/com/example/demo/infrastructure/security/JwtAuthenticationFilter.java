@@ -134,59 +134,67 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         logger.debug(String.format("处理JWT验证，路径: %s, %s", method, requestPath));
 
-        try {
-            // 如果SecurityContext中已经有认证信息（例如测试中使用@WithMockUser），则跳过JWT验证
-            if (SecurityContextHolder.getContext().getAuthentication() != null 
-                    && SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
-                logger.debug("SecurityContext已存在认证信息，跳过JWT验证");
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            String token = getTokenFromRequest(request);
-
-            // 只有在存在token时才进行验证
-            if (StringUtils.hasText(token)) {
-                try {
-                    // 从Redis获取Token信息
-                    TokenInfo tokenInfo = tokenService.getTokenInfo(token);
-                    
-                    if (tokenInfo != null) {
-                        // 构建用户权限列表
-                        List<GrantedAuthority> authorities = new ArrayList<>();
-                        if (tokenInfo.getRoles() != null) {
-                            for (String role : tokenInfo.getRoles()) {
-                                authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
-                            }
-                        }
-
-                        // 创建认证对象（不需要密码，因为已经通过token验证）
-                        UsernamePasswordAuthenticationToken authentication = 
-                                new UsernamePasswordAuthenticationToken(
-                                        tokenInfo.getUsername(), null, authorities);
-                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                        
-                        logger.debug(String.format(LogMessages.Token.VERIFY_SUCCESS, 
-                            tokenInfo.getUsername(), token));
-                    } else {
-                        // Token无效或已过期，返回明确的错误提示
-                        logger.warn(String.format(LogMessages.Token.INVALID_OR_EXPIRED, token));
-                        writeTokenExpiredResponse(response);
-                        return;
-                    }
-                } catch (Exception e) {
-                    logger.warn(String.format(LogMessages.Token.VERIFY_FAILED, e.getMessage()), e);
-                    // Token验证失败，返回明确的错误提示
-                    writeTokenExpiredResponse(response);
-                    return;
-                }
-            }
-        } catch (Exception e) {
-            logger.error(String.format("无法设置用户认证: %s", e.getMessage()), e);
+        // 如果SecurityContext中已经有认证信息（例如测试中使用@WithMockUser），则跳过JWT验证
+        if (SecurityContextHolder.getContext().getAuthentication() != null 
+                && SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
+            logger.debug("SecurityContext已存在认证信息，跳过JWT验证");
+            filterChain.doFilter(request, response);
+            return;
         }
 
+        String token = getTokenFromRequest(request);
+
+        // 只有在存在token时才进行验证
+        if (StringUtils.hasText(token)) {
+            try {
+                // 从Redis获取Token信息
+                TokenInfo tokenInfo = tokenService.getTokenInfo(token);
+                
+                if (tokenInfo != null) {
+                    // 构建用户权限列表
+                    List<GrantedAuthority> authorities = new ArrayList<>();
+                    if (tokenInfo.getRoles() != null) {
+                        for (String role : tokenInfo.getRoles()) {
+                            authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+                        }
+                    }
+
+                    // 创建认证对象（不需要密码，因为已经通过token验证）
+                    UsernamePasswordAuthenticationToken authentication = 
+                            new UsernamePasswordAuthenticationToken(
+                                    tokenInfo.getUsername(), null, authorities);
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    
+                    logger.debug(String.format(LogMessages.Token.VERIFY_SUCCESS, 
+                        tokenInfo.getUsername(), token));
+                } else {
+                    // Token无效或已过期，返回明确的错误提示
+                    logger.warn(String.format(LogMessages.Token.INVALID_OR_EXPIRED, token));
+                    writeTokenExpiredResponse(response);
+                    return; // 响应已写入，直接返回
+                }
+            } catch (Exception e) {
+                logger.warn(String.format(LogMessages.Token.VERIFY_FAILED, e.getMessage()), e);
+                // Token验证失败，尝试返回错误响应
+                try {
+                    writeTokenExpiredResponse(response);
+                } catch (Exception writeException) {
+                    logger.error("写入错误响应失败: " + writeException.getMessage(), writeException);
+                    // 如果写入响应失败，检查响应是否已提交
+                    if (response.isCommitted()) {
+                        return; // 响应已提交，直接返回
+                    }
+                    // 如果响应未提交，设置状态码并返回
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    return;
+                }
+                return; // 响应已写入，直接返回
+            }
+        }
+
+        // 继续执行过滤器链
         filterChain.doFilter(request, response);
     }
 
@@ -203,15 +211,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * 写入Token失效的错误响应
      */
     private void writeTokenExpiredResponse(HttpServletResponse response) throws IOException {
+        // 检查响应是否已提交
+        if (response.isCommitted()) {
+            logger.warn("响应已提交，无法写入Token过期错误响应");
+            return;
+        }
+        
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
         
-        Result<String> result = Result.error(
-            StatusCode.TOKEN_EXPIRED.getCode(), 
-            StatusCode.TOKEN_EXPIRED.getMessage());
-        String json = objectMapper.writeValueAsString(result);
-        response.getWriter().write(json);
-        response.getWriter().flush();
+        try {
+            Result<String> result = Result.error(
+                StatusCode.TOKEN_EXPIRED.getCode(), 
+                StatusCode.TOKEN_EXPIRED.getMessage());
+            String json = objectMapper.writeValueAsString(result);
+            response.getWriter().write(json);
+            response.getWriter().flush();
+        } catch (Exception e) {
+            logger.error("写入Token过期响应失败: " + e.getMessage(), e);
+            // 如果序列化失败，至少设置状态码
+            if (!response.isCommitted()) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expired or invalid");
+            }
+            throw e; // 重新抛出异常，让调用者处理
+        }
     }
 }
 

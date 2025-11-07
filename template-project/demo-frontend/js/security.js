@@ -54,7 +54,7 @@ function renderWhitelistTable(whitelist) {
 
     tbody.innerHTML = whitelist.map(item => `
         <tr>
-            <td>${item.path || '-'}</td>
+            <td>${item.pathPattern || item.path || '-'}</td>
             <td>${item.description || '-'}</td>
             <td>
                 <div class="action-buttons">
@@ -80,8 +80,8 @@ function renderPermissionsTable(permissions) {
 
     tbody.innerHTML = permissions.map(permission => `
         <tr>
-            <td>${permission.permissionName || '-'}</td>
-            <td>${permission.permissionCode || '-'}</td>
+            <td>${permission.pathPattern || permission.permissionName || '-'}</td>
+            <td>${permission.requiredRoles || permission.permissionCode || '-'}</td>
             <td>${permission.description || '-'}</td>
             <td>
                 <div class="action-buttons">
@@ -114,7 +114,7 @@ async function editWhitelist(id = null) {
 
     // 创建表单内容（包含提交按钮在表单内部）
     const formContent = `
-        ${createFormField('路径', 'path', 'text', whitelistData.path || '', { required: true, placeholder: '例如：/api/public/**' }).outerHTML}
+        ${createFormField('路径', 'pathPattern', 'text', whitelistData.pathPattern || whitelistData.path || '', { required: true, placeholder: '例如：/api/public/**' }).outerHTML}
         ${createFormField('描述', 'description', 'textarea', whitelistData.description || '', { placeholder: '请输入描述信息' }).outerHTML}
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
@@ -135,6 +135,16 @@ async function editWhitelist(id = null) {
         e.preventDefault();
         const data = getFormData(formEl);
 
+        // 显示确认模态框
+        const confirmed = await showConfirmModal(
+            id ? '确认更新' : '确认创建',
+            id ? `确定要更新白名单 "${data.pathPattern || data.path}" 吗？` : `确定要创建白名单 "${data.pathPattern || data.path}" 吗？`
+        );
+        
+        if (!confirmed) {
+            return;
+        }
+
         try {
             const submitBtn = formEl.querySelector('button[type="submit"]');
             const originalText = submitBtn.textContent;
@@ -148,7 +158,9 @@ async function editWhitelist(id = null) {
                 response = await api.createWhitelist(data);
             }
 
-            if (response.code === 200) {
+            // 兼容两种响应格式
+            const isSuccess = response.code === 200 || (response.success === true);
+            if (isSuccess) {
                 showMessage(id ? '更新成功' : '创建成功', 'success');
                 closeModal();
                 loadWhitelist();
@@ -172,13 +184,20 @@ async function editWhitelist(id = null) {
  * 删除白名单
  */
 async function deleteWhitelist(id) {
-    if (!confirm('确定要删除这条白名单吗？')) {
+    const confirmed = await showConfirmModal(
+        '确认删除',
+        '确定要删除这条白名单吗？此操作不可恢复。'
+    );
+    
+    if (!confirmed) {
         return;
     }
 
     try {
         const response = await api.deleteWhitelist(id);
-        if (response.code === 200) {
+        // 兼容两种响应格式
+        const isSuccess = response.code === 200 || (response.success === true);
+        if (isSuccess) {
             showMessage('删除成功', 'success');
             loadWhitelist();
         } else {
@@ -209,8 +228,9 @@ async function editPermission(id = null) {
 
     // 创建表单内容（包含提交按钮在表单内部）
     const formContent = `
-        ${createFormField('权限名称', 'permissionName', 'text', permissionData.permissionName || '', { required: true, placeholder: '请输入权限名称' }).outerHTML}
-        ${createFormField('权限代码', 'permissionCode', 'text', permissionData.permissionCode || '', { required: true, placeholder: '请输入权限代码' }).outerHTML}
+        ${createFormField('路径模式', 'pathPattern', 'text', permissionData.pathPattern || permissionData.permissionName || '', { required: true, placeholder: '例如：/api/admin/**' }).outerHTML}
+        ${createFormField('所需角色', 'requiredRoles', 'text', permissionData.requiredRoles || permissionData.permissionCode || '', { required: true, placeholder: '例如：ADMIN,USER（多个角色用逗号分隔）' }).outerHTML}
+        ${createFormField('HTTP方法', 'httpMethod', 'text', permissionData.httpMethod || '', { placeholder: '例如：GET,POST（可选，留空表示所有方法）' }).outerHTML}
         ${createFormField('描述', 'description', 'textarea', permissionData.description || '', { placeholder: '请输入描述信息' }).outerHTML}
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
@@ -231,6 +251,16 @@ async function editPermission(id = null) {
         e.preventDefault();
         const data = getFormData(formEl);
 
+        // 显示确认模态框
+        const confirmed = await showConfirmModal(
+            id ? '确认更新' : '确认创建',
+            id ? `确定要更新权限 "${data.pathPattern || data.permissionName}" 吗？` : `确定要创建权限 "${data.pathPattern || data.permissionName}" 吗？`
+        );
+        
+        if (!confirmed) {
+            return;
+        }
+
         try {
             const submitBtn = formEl.querySelector('button[type="submit"]');
             const originalText = submitBtn.textContent;
@@ -244,7 +274,9 @@ async function editPermission(id = null) {
                 response = await api.createPermission(data);
             }
 
-            if (response.code === 200) {
+            // 兼容两种响应格式
+            const isSuccess = response.code === 200 || (response.success === true);
+            if (isSuccess) {
                 showMessage(id ? '更新成功' : '创建成功', 'success');
                 closeModal();
                 loadPermissions();
@@ -268,13 +300,20 @@ async function editPermission(id = null) {
  * 删除权限
  */
 async function deletePermission(id) {
-    if (!confirm('确定要删除这条权限吗？')) {
+    const confirmed = await showConfirmModal(
+        '确认删除',
+        '确定要删除这条权限吗？此操作不可恢复。'
+    );
+    
+    if (!confirmed) {
         return;
     }
 
     try {
         const response = await api.deletePermission(id);
-        if (response.code === 200) {
+        // 兼容两种响应格式
+        const isSuccess = response.code === 200 || (response.success === true);
+        if (isSuccess) {
             showMessage('删除成功', 'success');
             loadPermissions();
         } else {

@@ -117,3 +117,70 @@ function fillFormData(formElement, data) {
     });
 }
 
+/**
+ * 显示确认模态框
+ * @param {string} title - 标题
+ * @param {string} message - 消息内容
+ * @returns {Promise<boolean>} - 返回用户选择（true=确认，false=取消）
+ */
+function showConfirmModal(title, message) {
+    return new Promise((resolve) => {
+        const modalId = 'confirmModal_' + Date.now();
+        const modal = document.createElement('div');
+        modal.id = modalId;
+        modal.className = 'modal active';
+        
+        const handleConfirm = () => {
+            const modalEl = document.getElementById(modalId);
+            if (modalEl) {
+                modalEl.remove();
+            }
+            resolve(true);
+        };
+        
+        const handleCancel = () => {
+            const modalEl = document.getElementById(modalId);
+            if (modalEl) {
+                modalEl.remove();
+            }
+            resolve(false);
+        };
+        
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header">
+                    <h3>${title}</h3>
+                    <button class="modal-close" id="${modalId}_close">×</button>
+                </div>
+                <div class="modal-body">
+                    <p style="margin: 0; font-size: 14px; color: var(--text-primary); line-height: 1.6;">${message}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="${modalId}_cancel">取消</button>
+                    <button type="button" class="btn btn-primary" id="${modalId}_confirm">确认</button>
+                </div>
+            </div>
+        `;
+        
+        // 绑定事件
+        setTimeout(() => {
+            const closeBtn = document.getElementById(modalId + '_close');
+            const cancelBtn = document.getElementById(modalId + '_cancel');
+            const confirmBtn = document.getElementById(modalId + '_confirm');
+            
+            if (closeBtn) closeBtn.addEventListener('click', handleCancel);
+            if (cancelBtn) cancelBtn.addEventListener('click', handleCancel);
+            if (confirmBtn) confirmBtn.addEventListener('click', handleConfirm);
+        }, 0);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                handleCancel();
+            }
+        });
+
+        const container = document.getElementById('modalContainer') || document.body;
+        container.appendChild(modal);
+    });
+}
+

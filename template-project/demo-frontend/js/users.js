@@ -85,11 +85,15 @@ async function editUser(id = null) {
     if (id) {
         try {
             const response = await api.getUserById(id);
-            if (response.code === 200) {
+            // 兼容两种响应格式：Result格式（code字段）和Map格式（success字段）
+            if (response.code === 200 || response.success === true) {
                 userData = response.data || {};
+            } else {
+                showMessage(response.message || '加载用户信息失败', 'error');
+                return;
             }
         } catch (error) {
-            showMessage('加载用户信息失败', 'error');
+            showMessage('加载用户信息失败: ' + error.message, 'error');
             return;
         }
     }
@@ -113,6 +117,11 @@ async function editUser(id = null) {
         return;
     }
 
+    // 如果编辑模式，确保表单字段已填充数据（使用fillFormData确保所有字段都被填充）
+    if (id && userData) {
+        fillFormData(formEl, userData);
+    }
+
     formEl.addEventListener('submit', async (e) => {
         e.preventDefault();
         const data = getFormData(formEl);
@@ -129,6 +138,16 @@ async function editUser(id = null) {
         }
         if (!data.username || !data.username.trim()) {
             showMessage('用户名不能为空', 'error');
+            return;
+        }
+
+        // 显示确认模态框
+        const confirmed = await showConfirmModal(
+            id ? '确认更新' : '确认创建',
+            id ? `确定要更新用户 "${data.username}" 吗？` : `确定要创建用户 "${data.username}" 吗？`
+        );
+        
+        if (!confirmed) {
             return;
         }
 
@@ -172,13 +191,20 @@ async function editUser(id = null) {
  * 删除用户
  */
 async function deleteUser(id, username) {
-    if (!confirm(`确定要删除用户 "${username}" 吗？`)) {
+    const confirmed = await showConfirmModal(
+        '确认删除',
+        `确定要删除用户 "${username}" 吗？此操作不可恢复。`
+    );
+    
+    if (!confirmed) {
         return;
     }
 
     try {
         const response = await api.deleteUser(id);
-        if (response.code === 200) {
+        // 兼容两种响应格式
+        const isSuccess = response.code === 200 || (response.success === true);
+        if (isSuccess) {
             showMessage('删除成功', 'success');
             loadUsers(currentPage);
         } else {

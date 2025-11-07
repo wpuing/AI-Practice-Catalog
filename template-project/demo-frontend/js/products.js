@@ -147,6 +147,16 @@ async function editProduct(id = null) {
             delete data.imageUrl;
         }
 
+        // 显示确认模态框
+        const confirmed = await showConfirmModal(
+            id ? '确认更新' : '确认创建',
+            id ? `确定要更新商品 "${data.productName || data.productCode}" 吗？` : `确定要创建商品 "${data.productName || data.productCode}" 吗？`
+        );
+        
+        if (!confirmed) {
+            return;
+        }
+
         try {
             const submitBtn = formEl.querySelector('button[type="submit"]');
             const originalText = submitBtn.textContent;
@@ -160,7 +170,9 @@ async function editProduct(id = null) {
                 response = await api.createProduct(data);
             }
 
-            if (response.code === 200) {
+            // 兼容两种响应格式
+            const isSuccess = response.code === 200 || (response.success === true);
+            if (isSuccess) {
                 showMessage(id ? '更新成功' : '创建成功', 'success');
                 closeModal();
                 loadProducts(productsPage);
@@ -184,50 +196,112 @@ async function editProduct(id = null) {
  * 更新商品库存
  */
 async function updateProductStock(id, productName) {
-    const stock = prompt(`请输入 "${productName}" 的新库存数量：`, '0');
-    if (stock === null) return;
-
-    const stockNum = parseInt(stock);
-    if (isNaN(stockNum) || stockNum < 0) {
-        showMessage('请输入有效的库存数量', 'error');
-        return;
+    // 先获取商品信息
+    let currentStock = 0;
+    try {
+        const productRes = await api.getProductById(id);
+        if (productRes.code === 200 || productRes.success === true) {
+            currentStock = productRes.data?.stock || 0;
+        }
+    } catch (error) {
+        console.error('获取商品信息失败:', error);
     }
 
-    try {
-        // 先获取商品信息
-        const productRes = await api.getProductById(id);
-        if (productRes.code !== 200) {
-            showMessage('获取商品信息失败', 'error');
+    // 创建输入表单
+    const formContent = `
+        ${createFormField('新库存数量', 'stock', 'number', currentStock.toString(), { required: true, min: 0, placeholder: '请输入库存数量' }).outerHTML}
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
+            <button type="button" class="btn btn-primary" id="confirmStockUpdate">确认更新</button>
+        </div>
+    `;
+    
+    const formHTML = `<form id="stockForm">${formContent}</form>`;
+    const modal = createModal('更新库存', formHTML, '');
+    
+    const formEl = modal.querySelector('#stockForm');
+    const confirmBtn = modal.querySelector('#confirmStockUpdate');
+    
+    confirmBtn.addEventListener('click', async () => {
+        const stockInput = formEl.querySelector('[name="stock"]');
+        const stock = stockInput.value;
+        
+        if (!stock || stock.trim() === '') {
+            showMessage('请输入库存数量', 'error');
+            return;
+        }
+        
+        const stockNum = parseInt(stock);
+        if (isNaN(stockNum) || stockNum < 0) {
+            showMessage('请输入有效的库存数量', 'error');
             return;
         }
 
-        // 更新库存
-        const productData = productRes.data;
-        productData.stock = stockNum;
+        // 显示确认模态框
+        const confirmed = await showConfirmModal(
+            '确认更新',
+            `确定要将商品 "${productName}" 的库存更新为 ${stockNum} 吗？`
+        );
         
-        const response = await api.updateProduct(id, productData);
-        if (response.code === 200) {
-            showMessage('库存更新成功', 'success');
-            loadProducts(productsPage);
-        } else {
-            showMessage(response.message || '更新库存失败', 'error');
+        if (!confirmed) {
+            return;
         }
-    } catch (error) {
-        showMessage(error.message || '更新库存失败', 'error');
-    }
+
+        try {
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = '更新中...';
+
+            // 先获取商品信息
+            const productRes = await api.getProductById(id);
+            if (productRes.code !== 200 && productRes.success !== true) {
+                showMessage('获取商品信息失败', 'error');
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = '确认更新';
+                return;
+            }
+
+            // 更新库存
+            const productData = productRes.data;
+            productData.stock = stockNum;
+            
+            const response = await api.updateProduct(id, productData);
+            // 兼容两种响应格式
+            const isSuccess = response.code === 200 || (response.success === true);
+            if (isSuccess) {
+                showMessage('库存更新成功', 'success');
+                closeModal();
+                loadProducts(productsPage);
+            } else {
+                showMessage(response.message || '库存更新失败', 'error');
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = '确认更新';
+            }
+        } catch (error) {
+            showMessage(error.message || '库存更新失败', 'error');
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = '确认更新';
+        }
+    });
 }
 
 /**
  * 删除商品
  */
 async function deleteProduct(id, productName) {
-    if (!confirm(`确定要删除商品 "${productName}" 吗？`)) {
+    const confirmed = await showConfirmModal(
+        '确认删除',
+        `确定要删除商品 "${productName}" 吗？此操作不可恢复。`
+    );
+    
+    if (!confirmed) {
         return;
     }
 
     try {
         const response = await api.deleteProduct(id);
-        if (response.code === 200) {
+        // 兼容两种响应格式
+        const isSuccess = response.code === 200 || (response.success === true);
+        if (isSuccess) {
             showMessage('删除成功', 'success');
             loadProducts(productsPage);
         } else {
