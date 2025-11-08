@@ -3,7 +3,7 @@
  */
 
 let productsPage = 1;
-const productsPageSize = 10;
+let productsPageSize = 15; // 默认15条
 let productTypeOptions = [];
 
 /**
@@ -17,7 +17,22 @@ async function loadProducts(page = 1) {
             const total = response.data.total || products.length;
             
             renderProductsTable(products);
-            renderPagination(total, page, 'products');
+            const totalPages = Math.ceil(total / productsPageSize);
+            // 使用通用分页控件
+            if (typeof renderCommonPagination === 'function') {
+                renderCommonPagination({
+                    total: total,
+                    current: page,
+                    size: productsPageSize,
+                    pages: totalPages,
+                    paginationId: 'productPagination',
+                    pageType: 'products',
+                    defaultSize: productsPageSize
+                });
+            } else {
+                // 降级使用旧的分页控件
+                renderPagination(total, page, totalPages, 'products');
+            }
         } else {
             showMessage(response.message || '加载商品列表失败', 'error');
         }
@@ -176,6 +191,10 @@ async function editProduct(id = null) {
                 showMessage(id ? '更新成功' : '创建成功', 'success');
                 closeModal();
                 loadProducts(productsPage);
+                // 如果当前在日志页面，刷新日志列表
+                if (typeof refreshLogsIfVisible === 'function') {
+                    refreshLogsIfVisible();
+                }
             } else {
                 showMessage(response.message || '操作失败', 'error');
                 submitBtn.disabled = false;
@@ -271,6 +290,10 @@ async function updateProductStock(id, productName) {
                 showMessage('库存更新成功', 'success');
                 closeModal();
                 loadProducts(productsPage);
+                // 如果当前在日志页面，刷新日志列表
+                if (typeof refreshLogsIfVisible === 'function') {
+                    refreshLogsIfVisible();
+                }
             } else {
                 showMessage(response.message || '库存更新失败', 'error');
                 confirmBtn.disabled = false;
@@ -304,6 +327,10 @@ async function deleteProduct(id, productName) {
         if (isSuccess) {
             showMessage('删除成功', 'success');
             loadProducts(productsPage);
+            // 如果当前在日志页面，刷新日志列表
+            if (typeof refreshLogsIfVisible === 'function') {
+                refreshLogsIfVisible();
+            }
         } else {
             showMessage(response.message || '删除失败', 'error');
         }
@@ -316,14 +343,15 @@ async function deleteProduct(id, productName) {
  * 初始化商品管理
  */
 async function initProducts() {
-    // 事件绑定已通过事件委托在home.js中统一处理
-    // 这里只需要加载数据
     await loadProductTypeOptions();
     loadProducts(productsPage);
 }
 
 // 导出供全局使用
 window.initProducts = initProducts;
+window.loadProducts = loadProducts;
+window.productsPage = productsPage;
+window.productsPageSize = productsPageSize;
 
 // 导出供全局使用
 window.editProduct = editProduct;

@@ -585,6 +585,78 @@ class ApiClient {
         return this.get('/redis/tokens');
     }
 
+    // ========== 操作日志接口 ==========
+
+    /**
+     * 分页查询日志
+     */
+    async getLogs(page = 1, size = 10, module = null, operationType = null, username = null) {
+        const params = { page, size };
+        if (module) params.module = module;
+        if (operationType) params.operationType = operationType;
+        if (username) params.username = username;
+        return this.get('/admin/logs', params);
+    }
+
+    /**
+     * 根据ID查询日志详情
+     */
+    async getLogById(logId) {
+        return this.get(`/admin/logs/${logId}`);
+    }
+
+    /**
+     * 导出日志
+     */
+    async exportLogs(module = null, operationType = null, username = null) {
+        const params = {};
+        if (module) params.module = module;
+        if (operationType) params.operationType = operationType;
+        if (username) params.username = username;
+        
+        const queryString = new URLSearchParams(params).toString();
+        const url = `/admin/logs/export${queryString ? '?' + queryString : ''}`;
+        
+        try {
+            const response = await fetch(API_BASE_URL + url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${this.token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('导出失败');
+            }
+
+            // 获取文件名
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'operation_logs.txt';
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            // 下载文件
+            const blob = await response.blob();
+            const url_blob = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url_blob;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url_blob);
+
+            return { code: 200, message: '导出成功' };
+        } catch (error) {
+            console.error('导出日志失败:', error);
+            throw error;
+        }
+    }
+
     // ========== 公共接口 ==========
 
     /**

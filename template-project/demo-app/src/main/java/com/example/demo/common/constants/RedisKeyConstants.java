@@ -41,6 +41,17 @@ public class RedisKeyConstants {
     }
 
     /**
+     * 操作日志相关Key前缀
+     */
+    public static class Log {
+        /** 日志列表缓存前缀: log:list:{page}:{size} */
+        public static final String LOG_LIST = "log:list:";
+        
+        /** 日志详情缓存前缀: log:detail:{logId} */
+        public static final String LOG_DETAIL = "log:detail:";
+    }
+
+    /**
      * 生成Token Key
      */
     public static String getTokenKey(String token) {
@@ -94,6 +105,20 @@ public class RedisKeyConstants {
      */
     public static String getAllRolesKey() {
         return Role.ALL_ROLES;
+    }
+
+    /**
+     * 生成日志列表缓存Key
+     */
+    public static String getLogListKey(int page, int size) {
+        return Log.LOG_LIST + page + ":" + size;
+    }
+
+    /**
+     * 生成日志详情缓存Key
+     */
+    public static String getLogDetailKey(String logId) {
+        return Log.LOG_DETAIL + logId;
     }
 }
 

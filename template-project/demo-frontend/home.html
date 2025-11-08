@@ -6,6 +6,7 @@
     <title>管理系统 - 控制台</title>
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/home.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -38,6 +39,9 @@
                         </a>
                         <a href="#" data-page="redis" class="nav-link">
                             <span class="icon">🗄️</span> Redis管理
+                        </a>
+                        <a href="#" data-page="logs" class="nav-link">
+                            <span class="icon">📋</span> 日志管理
                         </a>
                     </li>
                     <li><a href="#" data-page="test" class="nav-link">
@@ -73,33 +77,44 @@
                         <p>系统概览和统计信息</p>
                     </div>
                     <div class="dashboard-grid">
-                        <div class="stat-card">
+                        <div class="stat-card" data-page="users" style="cursor: pointer;">
                             <div class="stat-icon">👥</div>
                             <div class="stat-content">
                                 <h3 id="userCount">-</h3>
                                 <p>用户总数</p>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" data-page="product-types" style="cursor: pointer;">
                             <div class="stat-icon">📦</div>
                             <div class="stat-content">
                                 <h3 id="productTypeCount">-</h3>
                                 <p>商品类型</p>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" data-page="products" style="cursor: pointer;">
                             <div class="stat-icon">🛍️</div>
                             <div class="stat-content">
                                 <h3 id="productCount">-</h3>
                                 <p>商品总数</p>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" data-page="products" style="cursor: pointer;">
                             <div class="stat-icon">✅</div>
                             <div class="stat-content">
                                 <h3 id="activeProductCount">-</h3>
                                 <p>启用商品</p>
                             </div>
+                        </div>
+                    </div>
+                    <!-- ECharts 图表容器 -->
+                    <div class="charts-container">
+                        <div class="chart-card">
+                            <h3 class="chart-title">数据统计概览</h3>
+                            <div id="overviewChart" class="chart"></div>
+                        </div>
+                        <div class="chart-card">
+                            <h3 class="chart-title">商品状态分布</h3>
+                            <div id="productStatusChart" class="chart"></div>
                         </div>
                     </div>
                 </div>
@@ -124,6 +139,7 @@
                                 <tr><td colspan="4" class="loading">加载中...</td></tr>
                             </tbody>
                         </table>
+                        <div class="pagination" id="userPagination"></div>
                     </div>
                 </div>
 
@@ -149,6 +165,7 @@
                                 <tr><td colspan="6" class="loading">加载中...</td></tr>
                             </tbody>
                         </table>
+                        <div class="pagination" id="productTypePagination"></div>
                     </div>
                 </div>
 
@@ -175,6 +192,7 @@
                                 <tr><td colspan="7" class="loading">加载中...</td></tr>
                             </tbody>
                         </table>
+                        <div class="pagination" id="productPagination"></div>
                     </div>
                 </div>
 
@@ -258,6 +276,65 @@
                     </div>
                 </div>
 
+                <!-- 日志管理页面（管理员） -->
+                <div id="logs" class="page">
+                    <div class="page-header">
+                        <h2>日志管理</h2>
+                        <div>
+                            <button class="btn btn-primary" id="exportLogsBtn">导出日志</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <div class="filter-bar">
+                            <div class="filter-item">
+                                <label>模块：</label>
+                                <select id="logModuleFilter" class="form-control">
+                                    <option value="">全部</option>
+                                    <option value="用户管理">用户管理</option>
+                                    <option value="商品管理">商品管理</option>
+                                    <option value="商品类型管理">商品类型管理</option>
+                                    <option value="角色管理">角色管理</option>
+                                    <option value="安全配置">安全配置</option>
+                                </select>
+                            </div>
+                            <div class="filter-item">
+                                <label>操作类型：</label>
+                                <select id="logOperationTypeFilter" class="form-control">
+                                    <option value="">全部</option>
+                                    <option value="CREATE">新增</option>
+                                    <option value="UPDATE">修改</option>
+                                    <option value="DELETE">删除</option>
+                                </select>
+                            </div>
+                            <div class="filter-item">
+                                <label>用户名：</label>
+                                <input type="text" id="logUsernameFilter" class="form-control" placeholder="输入用户名">
+                            </div>
+                            <div class="filter-item">
+                                <button class="btn btn-primary" id="searchLogsBtn">查询</button>
+                                <button class="btn btn-secondary" id="resetLogsBtn">重置</button>
+                            </div>
+                        </div>
+                        <table class="data-table" id="logTable">
+                            <thead>
+                                <tr>
+                                    <th>操作时间</th>
+                                    <th>用户名</th>
+                                    <th>模块</th>
+                                    <th>操作类型</th>
+                                    <th>操作描述</th>
+                                    <th>IP地址</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logTableBody">
+                                <tr><td colspan="7" class="loading">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="pagination" id="logPagination"></div>
+                    </div>
+                </div>
+
                 <!-- 接口测试页面 -->
                 <div id="test" class="page">
                     <div class="page-header">
@@ -282,12 +359,14 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/utils.js"></script>
+    <script src="js/pagination.js"></script>
     <script src="js/users.js"></script>
     <script src="js/product-types.js"></script>
     <script src="js/products.js"></script>
     <script src="js/roles.js"></script>
     <script src="js/security.js"></script>
     <script src="js/redis.js"></script>
+    <script src="js/logs.js"></script>
     <script src="js/test.js"></script>
     <script src="js/home.js"></script>
 </body>

@@ -375,6 +375,11 @@ body {
     color: #0C5460;
 }
 
+.badge-secondary {
+    background: var(--text-secondary);
+    color: #fff;
+}
+
 /* 工具类 */
 .text-center {
     text-align: center;

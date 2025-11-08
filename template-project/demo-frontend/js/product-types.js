@@ -3,7 +3,7 @@
  */
 
 let productTypesPage = 1;
-const productTypesPageSize = 10;
+let productTypesPageSize = 15; // 默认15条
 
 /**
  * 加载商品类型列表
@@ -16,7 +16,22 @@ async function loadProductTypes(page = 1) {
             const total = response.data.total || types.length;
             
             renderProductTypesTable(types);
-            renderPagination(total, page, 'product-types');
+            const totalPages = Math.ceil(total / productTypesPageSize);
+            // 使用通用分页控件
+            if (typeof renderCommonPagination === 'function') {
+                renderCommonPagination({
+                    total: total,
+                    current: page,
+                    size: productTypesPageSize,
+                    pages: totalPages,
+                    paginationId: 'productTypePagination',
+                    pageType: 'product-types',
+                    defaultSize: productTypesPageSize
+                });
+            } else {
+                // 降级使用旧的分页控件
+                renderPagination(total, page, totalPages, 'product-types');
+            }
         } else {
             showMessage(response.message || '加载商品类型列表失败', 'error');
         }
@@ -140,6 +155,10 @@ async function editProductType(id = null) {
                 showMessage(id ? '更新成功' : '创建成功', 'success');
                 closeModal();
                 loadProductTypes(productTypesPage);
+                // 如果当前在日志页面，刷新日志列表
+                if (typeof refreshLogsIfVisible === 'function') {
+                    refreshLogsIfVisible();
+                }
             } else {
                 showMessage(response.message || '操作失败', 'error');
                 submitBtn.disabled = false;
@@ -176,6 +195,10 @@ async function deleteProductType(id, typeName) {
         if (isSuccess) {
             showMessage('删除成功', 'success');
             loadProductTypes(productTypesPage);
+            // 如果当前在日志页面，刷新日志列表
+            if (typeof refreshLogsIfVisible === 'function') {
+                refreshLogsIfVisible();
+            }
         } else {
             showMessage(response.message || '删除失败', 'error');
         }
@@ -188,13 +211,14 @@ async function deleteProductType(id, typeName) {
  * 初始化商品类型管理
  */
 function initProductTypes() {
-    // 事件绑定已通过事件委托在home.js中统一处理
-    // 这里只需要加载数据
     loadProductTypes(productTypesPage);
 }
 
 // 导出供全局使用
 window.initProductTypes = initProductTypes;
+window.loadProductTypes = loadProductTypes;
+window.productTypesPage = productTypesPage;
+window.productTypesPageSize = productTypesPageSize;
 
 // 导出供全局使用
 window.editProductType = editProductType;

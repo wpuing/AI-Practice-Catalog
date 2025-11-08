@@ -45,7 +45,7 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-  # mapper-locations: classpath:mapper/*.xml  # 如果没有 mapper XML 文件，可以注释掉
+  mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.example.demo.entity
   global-config:
     db-config:
@@ -68,4 +68,11 @@ token:
 role:
   cache:
     expire-time: 604800  # 角色缓存过期时间（秒），默认7天
+
+# 操作日志配置
+operation-log:
+  retention-days: 30  # 日志保留天数，默认30天
+  save-directory: D:\code\cursor\test\logs\demo # 日志保存目录（为空则不保存到文件），例如：D:/logs/operation
+  cache:
+    expire-time: 3600  # 日志缓存过期时间（秒），默认1小时
 

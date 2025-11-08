@@ -168,6 +168,25 @@ function showPage(pageName) {
                 loadRedisInfo();
             }
             break;
+            case 'logs':
+                if (api.isAdmin()) {
+                    // 检查initLogs函数是否存在，如果不存在则延迟加载
+                    if (typeof initLogs === 'function') {
+                        initLogs();
+                    } else if (typeof window.initLogs === 'function') {
+                        window.initLogs();
+                    } else {
+                        // 如果函数还未加载，延迟执行
+                        setTimeout(() => {
+                            if (typeof window.initLogs === 'function') {
+                                window.initLogs();
+                            } else {
+                                console.error('initLogs函数未找到，请检查logs.js是否已加载');
+                            }
+                        }, 100);
+                    }
+                }
+                break;
         case 'test':
             runAllTests();
             break;
@@ -188,11 +207,17 @@ async function loadDashboard() {
 
         // 获取启用商品数量
         let activeProductsCount = 0;
+        let disabledProductsCount = 0;
         try {
             const activeProductsRes = await api.getProducts(1, 1000, null, true);
             if (activeProductsRes.code === 200) {
                 const activeProducts = activeProductsRes.data.records || activeProductsRes.data.list || [];
                 activeProductsCount = activeProducts.length;
+            }
+            const allProductsRes = await api.getProducts(1, 1000);
+            if (allProductsRes.code === 200) {
+                const allProducts = allProductsRes.data.records || allProductsRes.data.list || [];
+                disabledProductsCount = allProducts.length - activeProductsCount;
             }
         } catch (error) {
             console.error('获取启用商品失败:', error);
@@ -212,8 +237,128 @@ async function loadDashboard() {
         if (typeCountEl) typeCountEl.textContent = typeCount;
         if (productCountEl) productCountEl.textContent = productCount;
         if (activeProductCountEl) activeProductCountEl.textContent = activeProductsCount;
+
+        // 初始化图表
+        initCharts(userCount, typeCount, productCount, activeProductsCount, disabledProductsCount);
     } catch (error) {
         console.error('加载控制台数据失败:', error);
+    }
+}
+
+/**
+ * 初始化ECharts图表
+ */
+function initCharts(userCount, typeCount, productCount, activeProductsCount, disabledProductsCount) {
+    // 确保ECharts已加载
+    if (typeof echarts === 'undefined') {
+        console.error('ECharts未加载');
+        return;
+    }
+
+    // 数据统计概览图表（柱状图）
+    const overviewChartEl = document.getElementById('overviewChart');
+    if (overviewChartEl) {
+        const overviewChart = echarts.init(overviewChartEl);
+        const overviewOption = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['用户', '商品类型', '商品总数', '启用商品'],
+                axisLabel: {
+                    color: '#666'
+                }
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: {
+                    color: '#666'
+                }
+            },
+            series: [{
+                name: '数量',
+                type: 'bar',
+                data: [userCount, typeCount, productCount, activeProductsCount],
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: '#2E86AB' },
+                        { offset: 1, color: '#06A77D' }
+                    ])
+                },
+                label: {
+                    show: true,
+                    position: 'top',
+                    color: '#333'
+                }
+            }]
+        };
+        overviewChart.setOption(overviewOption);
+
+        // 响应式调整
+        window.addEventListener('resize', () => {
+            overviewChart.resize();
+        });
+    }
+
+    // 商品状态分布图表（饼图）
+    const productStatusChartEl = document.getElementById('productStatusChart');
+    if (productStatusChartEl) {
+        const productStatusChart = echarts.init(productStatusChartEl);
+        const productStatusOption = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                textStyle: {
+                    color: '#666'
+                }
+            },
+            series: [{
+                name: '商品状态',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                },
+                label: {
+                    show: true,
+                    formatter: '{b}: {c}\n({d}%)'
+                },
+                emphasis: {
+                    label: {
+                        show: true,
+                        fontSize: '16',
+                        fontWeight: 'bold'
+                    }
+                },
+                data: [
+                    { value: activeProductsCount, name: '启用商品', itemStyle: { color: '#06A77D' } },
+                    { value: disabledProductsCount, name: '禁用商品', itemStyle: { color: '#E63946' } }
+                ]
+            }]
+        };
+        productStatusChart.setOption(productStatusOption);
+
+        // 响应式调整
+        window.addEventListener('resize', () => {
+            productStatusChart.resize();
+        });
     }
 }
 
@@ -412,6 +557,18 @@ function bindEvents() {
         });
     }
     
+    // 绑定统计卡片点击事件（跳转到对应页面）
+    document.addEventListener('click', function(e) {
+        const statCard = e.target.closest('.stat-card');
+        if (statCard && statCard.dataset.page) {
+            e.preventDefault();
+            e.stopPropagation();
+            const targetPage = statCard.dataset.page;
+            console.log('统计卡片被点击，跳转到:', targetPage);
+            showPage(targetPage);
+        }
+    });
+
     // 绑定侧边栏切换按钮
     bindSidebarToggle();
     
@@ -421,9 +578,9 @@ function bindEvents() {
     if (!sidebarDelegateBound) {
         document.addEventListener('click', function(e) {
             // 检查点击的是按钮本身，或者是按钮内的元素
-            const clickedButton = e.target.closest('#sidebarToggle') || 
+            const clickedButton = e.target.closest('#sidebarToggle') ||
                                   (e.target.id === 'sidebarToggle' ? e.target : null);
-            
+
             if (clickedButton && clickedButton.id === 'sidebarToggle') {
                 // 如果直接绑定没有生效，使用事件委托
                 e.preventDefault();
@@ -457,12 +614,72 @@ function bindEvents() {
 }
 
 /**
- * 分页组件（简化版）
+ * 分页组件
+ * @param {number} total - 总记录数
+ * @param {number} current - 当前页码
+ * @param {number|string} totalPagesOrPageType - 总页数或页面类型（兼容旧调用）
+ * @param {string} pageType - 页面类型
  */
-function renderPagination(total, current, pageType) {
-    // 分页功能可以在后续优化中实现
-    // 目前使用简单的分页，通过修改current变量来切换页码
-    console.log(`分页信息: 总计${total}, 当前页${current}, 类型${pageType}`);
+function renderPagination(total, current, totalPagesOrPageType, pageType) {
+    let totalPages;
+    
+    // 兼容旧调用方式：renderPagination(total, current, pageType)
+    if (typeof totalPagesOrPageType === 'string') {
+        pageType = totalPagesOrPageType;
+        totalPages = undefined;
+    } else {
+        totalPages = totalPagesOrPageType;
+    }
+    
+    // 如果totalPages未提供，则计算
+    if (totalPages === undefined) {
+        let pageSize = 15;
+        if (pageType === 'users') {
+            pageSize = typeof pageSize !== 'undefined' ? pageSize : 15;
+        } else if (pageType === 'product-types') {
+            pageSize = typeof productTypesPageSize !== 'undefined' ? productTypesPageSize : 15;
+        } else if (pageType === 'products') {
+            pageSize = typeof productsPageSize !== 'undefined' ? productsPageSize : 15;
+        }
+        totalPages = Math.ceil(total / pageSize);
+    }
+    
+    const paginationId = pageType === 'users' ? 'userPagination' : 
+                        pageType === 'product-types' ? 'productTypePagination' : 
+                        pageType === 'products' ? 'productPagination' : 'pagination';
+    
+    const pagination = document.getElementById(paginationId);
+    if (!pagination) {
+        console.warn(`未找到分页容器: ${paginationId}`);
+        return;
+    }
+    
+    if (totalPages <= 1) {
+        pagination.innerHTML = `<div class="pagination-controls"><span class="page-info">共 ${total} 条</span></div>`;
+        return;
+    }
+    
+    let html = '<div class="pagination-controls">';
+    
+    // 上一页
+    if (current > 1) {
+        html += `<button class="btn btn-sm" onclick="goToPage(${current - 1}, '${pageType}')">上一页</button>`;
+    } else {
+        html += `<button class="btn btn-sm" disabled>上一页</button>`;
+    }
+    
+    // 页码
+    html += `<span class="page-info">第 ${current} / ${totalPages} 页，共 ${total} 条</span>`;
+    
+    // 下一页
+    if (current < totalPages) {
+        html += `<button class="btn btn-sm" onclick="goToPage(${current + 1}, '${pageType}')">下一页</button>`;
+    } else {
+        html += `<button class="btn btn-sm" disabled>下一页</button>`;
+    }
+    
+    html += '</div>';
+    pagination.innerHTML = html;
 }
 
 // 全局分页切换函数

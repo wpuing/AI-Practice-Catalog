@@ -3,7 +3,7 @@
  */
 
 let currentPage = 1;
-const pageSize = 10;
+let pageSize = 15; // 默认15条
 
 /**
  * 加载用户列表
@@ -39,7 +39,23 @@ async function loadUsers(page = 1) {
             }
             
             renderUsersTable(users);
-            renderPagination(total, page, 'users');
+            // 计算总页数
+            const totalPages = Math.ceil(total / pageSize);
+            // 使用通用分页控件
+            if (typeof renderCommonPagination === 'function') {
+                renderCommonPagination({
+                    total: total,
+                    current: page,
+                    size: pageSize,
+                    pages: totalPages,
+                    paginationId: 'userPagination',
+                    pageType: 'users',
+                    defaultSize: pageSize
+                });
+            } else {
+                // 降级使用旧的分页控件
+                renderPagination(total, page, totalPages, 'users');
+            }
         } else {
             showMessage(response.message || '加载用户列表失败', 'error');
         }
@@ -171,6 +187,12 @@ async function editUser(id = null) {
                 showMessage(response.message || (id ? '更新成功' : '创建成功'), 'success');
                 closeModal();
                 loadUsers(currentPage);
+                // 如果当前在日志页面，刷新日志列表
+                if (typeof refreshLogsIfVisible === 'function') {
+                    refreshLogsIfVisible();
+                } else if (typeof window.refreshLogsIfVisible === 'function') {
+                    window.refreshLogsIfVisible();
+                }
             } else {
                 showMessage(response.message || '操作失败', 'error');
                 submitBtn.disabled = false;
@@ -207,6 +229,12 @@ async function deleteUser(id, username) {
         if (isSuccess) {
             showMessage('删除成功', 'success');
             loadUsers(currentPage);
+            // 如果当前在日志页面，刷新日志列表
+            if (typeof refreshLogsIfVisible === 'function') {
+                refreshLogsIfVisible();
+            } else if (typeof window.refreshLogsIfVisible === 'function') {
+                window.refreshLogsIfVisible();
+            }
         } else {
             showMessage(response.message || '删除失败', 'error');
         }
@@ -219,13 +247,14 @@ async function deleteUser(id, username) {
  * 初始化用户管理
  */
 function initUsers() {
-    // 事件绑定已通过事件委托在home.js中统一处理
-    // 这里只需要加载数据
     loadUsers(currentPage);
 }
 
 // 导出供全局使用
 window.initUsers = initUsers;
+window.loadUsers = loadUsers;
+window.currentPage = currentPage;
+window.pageSize = pageSize;
 
 // 导出供全局使用
 window.editUser = editUser;

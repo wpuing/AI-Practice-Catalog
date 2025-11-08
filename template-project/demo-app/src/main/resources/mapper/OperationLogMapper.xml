@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.domain.log.repository.OperationLogMapper">
+
+    <!-- 删除指定时间之前的日志 -->
+    <delete id="deleteByCreateTimeBefore">
+        DELETE FROM "operation_log"
+        WHERE create_time &lt; #{createTime}
+    </delete>
+
+    <!-- 查询指定时间之前的日志（用于文件持久化） -->
+    <select id="selectByCreateTimeBefore" resultType="com.example.demo.domain.log.entity.OperationLog">
+        SELECT *
+        FROM "operation_log"
+        WHERE create_time &lt; #{createTime}
+        ORDER BY create_time ASC
+    </select>
+
+</mapper>
+
