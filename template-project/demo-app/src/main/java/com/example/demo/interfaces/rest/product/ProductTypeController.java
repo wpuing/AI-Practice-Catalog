@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -37,8 +36,7 @@ public class ProductTypeController {
             return Result.error(StatusCode.USERNAME_EXISTS.getCode(), "商品类型代码已存在");
         }
 
-        productType.setCreateTime(LocalDateTime.now());
-        productType.setUpdateTime(LocalDateTime.now());
+        // createDate和updateDate由MetaObjectHandler自动填充
         if (productType.getEnabled() == null) {
             productType.setEnabled(true);
         }
@@ -74,13 +72,24 @@ public class ProductTypeController {
     public Result<Page<ProductType>> getAllProductTypes(
             @RequestParam(defaultValue = "1") Integer current,
             @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(required = false) Boolean enabled) {
+            @RequestParam(required = false) Boolean enabled,
+            @RequestParam(required = false) String keyword) {
         Page<ProductType> page = new Page<>(current, size);
         QueryWrapper<ProductType> queryWrapper = new QueryWrapper<>();
         if (enabled != null) {
             queryWrapper.eq("enabled", enabled);
         }
-        queryWrapper.orderByAsc("sort_order", "create_time");
+        // 如果有关键词，添加查询条件
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            queryWrapper.and(wrapper -> wrapper
+                .like("type_name", keyword.trim())
+                .or()
+                .like("type_code", keyword.trim())
+                .or()
+                .like("description", keyword.trim())
+            );
+        }
+        queryWrapper.orderByAsc("sort_order", "create_date");
         Page<ProductType> productTypePage = productTypeService.page(page, queryWrapper);
         return Result.success(productTypePage);
     }
@@ -92,7 +101,7 @@ public class ProductTypeController {
     public Result<List<ProductType>> getEnabledProductTypes() {
         QueryWrapper<ProductType> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("enabled", true);
-        queryWrapper.orderByAsc("sort_order", "create_time");
+        queryWrapper.orderByAsc("sort_order", "create_date");
         List<ProductType> list = productTypeService.list(queryWrapper);
         return Result.success(list);
     }
@@ -118,7 +127,7 @@ public class ProductTypeController {
         }
 
         productType.setId(id);
-        productType.setUpdateTime(LocalDateTime.now());
+        // updateDate由MetaObjectHandler自动填充
 
         boolean updated = productTypeService.updateById(productType);
         if (updated) {
@@ -158,7 +167,7 @@ public class ProductTypeController {
                 .like("type_code", keyword)
                 .or()
                 .like("description", keyword));
-        queryWrapper.orderByAsc("sort_order", "create_time");
+        queryWrapper.orderByAsc("sort_order", "create_date");
         List<ProductType> list = productTypeService.list(queryWrapper);
         return Result.success(list);
     }

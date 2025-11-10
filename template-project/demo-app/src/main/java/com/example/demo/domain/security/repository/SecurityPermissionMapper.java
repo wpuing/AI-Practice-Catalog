@@ -13,7 +13,7 @@ public interface SecurityPermissionMapper extends BaseMapper<SecurityPermission>
     /**
      * 查询所有启用的权限配置（按排序字段排序）
      */
-    @Select("SELECT * FROM \"security_permission\" WHERE enabled = TRUE ORDER BY sort_order ASC, create_time ASC")
+    @Select("SELECT * FROM \"security_permission\" WHERE enabled = TRUE ORDER BY sort_order ASC, create_date ASC")
     List<SecurityPermission> findAllEnabled();
 }
 

@@ -29,21 +29,27 @@
                     <li><a href="#" data-page="products" class="nav-link">
                         <span class="icon">🛍️</span> 商品管理
                     </a></li>
-                    <li class="admin-section" id="adminSection" style="display: none;">
+                    <li id="adminSection" style="display: none;">
                         <div class="nav-divider">管理员功能</div>
-                        <a href="#" data-page="roles" class="nav-link">
-                            <span class="icon">🔐</span> 角色管理
-                        </a>
-                        <a href="#" data-page="security" class="nav-link">
-                            <span class="icon">🛡️</span> 安全配置
-                        </a>
-                        <a href="#" data-page="redis" class="nav-link">
-                            <span class="icon">🗄️</span> Redis管理
-                        </a>
-                        <a href="#" data-page="logs" class="nav-link">
-                            <span class="icon">📋</span> 日志管理
-                        </a>
                     </li>
+                    <li id="rolesMenuItem" style="display: none;"><a href="#" data-page="roles" class="nav-link">
+                        <span class="icon">🔐</span> 角色管理
+                    </a></li>
+                    <li id="securityMenuItem" style="display: none;"><a href="#" data-page="security" class="nav-link">
+                        <span class="icon">🛡️</span> 安全配置
+                    </a></li>
+                    <li id="permissionsMenuItem" style="display: none;"><a href="#" data-page="permissions" class="nav-link">
+                        <span class="icon">🔑</span> 权限管理
+                    </a></li>
+                    <li id="redisMenuItem" style="display: none;"><a href="#" data-page="redis" class="nav-link">
+                        <span class="icon">🗄️</span> Redis管理
+                    </a></li>
+                    <li id="logsMenuItem" style="display: none;"><a href="#" data-page="logs" class="nav-link">
+                        <span class="icon">📋</span> 日志管理
+                    </a></li>
+                    <li id="menusMenuItem" style="display: none;"><a href="#" data-page="menus" class="nav-link">
+                        <span class="icon">📑</span> 菜单管理
+                    </a></li>
                     <li><a href="#" data-page="test" class="nav-link">
                         <span class="icon">🧪</span> 接口测试
                     </a></li>
@@ -62,6 +68,24 @@
                     <div class="user-info">
                         <span id="currentUsername">-</span>
                         <span class="user-role" id="currentRole">-</span>
+                    </div>
+                    <div class="header-info-bar">
+                        <div class="info-item">
+                            <span class="info-label">日期：</span>
+                            <span class="info-value" id="currentDate">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">时间：</span>
+                            <span class="info-value" id="currentTime">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">温度：</span>
+                            <span class="info-value" id="currentTemperature">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">在线人数：</span>
+                            <span class="info-value" id="onlineUserCount">-</span>
+                        </div>
                     </div>
                     <button class="btn btn-sm" id="refreshTokenBtn">刷新Token</button>
                     <button class="btn btn-sm btn-danger" id="logoutBtn">退出</button>
@@ -125,6 +149,16 @@
                         <h2>用户管理</h2>
                         <button class="btn btn-primary" id="addUserBtn">新增用户</button>
                     </div>
+                    <div class="filter-bar">
+                        <div class="filter-item">
+                            <label>搜索：</label>
+                            <input type="text" id="userSearchInput" class="form-control" placeholder="输入用户名" style="width: 250px;">
+                        </div>
+                        <div class="filter-item">
+                            <button type="button" class="btn btn-primary" id="searchUsersBtn">查询</button>
+                            <button type="button" class="btn btn-secondary" id="resetUsersBtn">重置</button>
+                        </div>
+                    </div>
                     <div class="table-container">
                         <table class="data-table" id="usersTable">
                             <thead>
@@ -148,6 +182,16 @@
                     <div class="page-header">
                         <h2>商品类型管理</h2>
                         <button class="btn btn-primary" id="addProductTypeBtn">新增类型</button>
+                    </div>
+                    <div class="filter-bar">
+                        <div class="filter-item">
+                            <label>搜索：</label>
+                            <input type="text" id="productTypeSearchInput" class="form-control" placeholder="输入类型名称、代码或描述" style="width: 300px;">
+                        </div>
+                        <div class="filter-item">
+                            <button type="button" class="btn btn-primary" id="searchProductTypesBtn">查询</button>
+                            <button type="button" class="btn btn-secondary" id="resetProductTypesBtn">重置</button>
+                        </div>
                     </div>
                     <div class="table-container">
                         <table class="data-table" id="productTypesTable">
@@ -175,6 +219,16 @@
                         <h2>商品管理</h2>
                         <button class="btn btn-primary" id="addProductBtn">新增商品</button>
                     </div>
+                    <div class="filter-bar">
+                        <div class="filter-item">
+                            <label>搜索：</label>
+                            <input type="text" id="productSearchInput" class="form-control" placeholder="输入商品名称、代码或描述" style="width: 300px;">
+                        </div>
+                        <div class="filter-item">
+                            <button type="button" class="btn btn-primary" id="searchProductsBtn">查询</button>
+                            <button type="button" class="btn btn-secondary" id="resetProductsBtn">重置</button>
+                        </div>
+                    </div>
                     <div class="table-container">
                         <table class="data-table" id="productsTable">
                             <thead>
@@ -201,6 +255,16 @@
                     <div class="page-header">
                         <h2>角色管理</h2>
                         <button class="btn btn-primary" id="addRoleBtn">新增角色</button>
+                    </div>
+                    <div class="filter-bar">
+                        <div class="filter-item">
+                            <label>搜索：</label>
+                            <input type="text" id="roleSearchInput" class="form-control" placeholder="输入角色名称、代码或描述" style="width: 300px;">
+                        </div>
+                        <div class="filter-item">
+                            <button type="button" class="btn btn-primary" id="searchRolesBtn">查询</button>
+                            <button type="button" class="btn btn-secondary" id="resetRolesBtn">重置</button>
+                        </div>
                     </div>
                     <div class="table-container">
                         <table class="data-table" id="rolesTable">
@@ -263,6 +327,44 @@
                     </div>
                 </div>
 
+                <!-- 权限管理页面（管理员） -->
+                <div id="permissions" class="page">
+                    <div class="page-header">
+                        <h2>权限管理</h2>
+                        <button class="btn btn-primary" id="addPermissionBtn">新增权限</button>
+                    </div>
+                    <div class="filter-bar">
+                        <div class="filter-item">
+                            <label>搜索：</label>
+                            <input type="text" id="permissionSearchInput" class="form-control" placeholder="输入路径模式、HTTP方法、所需角色或描述" style="width: 300px;">
+                        </div>
+                        <div class="filter-item">
+                            <button type="button" class="btn btn-primary" id="searchPermissionsBtn">查询</button>
+                            <button type="button" class="btn btn-secondary" id="resetPermissionsBtn">重置</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="permissionsTable">
+                            <thead>
+                                <tr>
+                                    <th>路径模式</th>
+                                    <th>HTTP方法</th>
+                                    <th>所需角色</th>
+                                    <th>描述</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="permissionsTableBody">
+                                <tr><td colspan="6" class="loading">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="permissionsPagination" class="pagination-toolbar">
+                        <!-- 分页控件将在这里动态渲染 -->
+                    </div>
+                </div>
+
                 <!-- Redis管理页面（管理员） -->
                 <div id="redis" class="page">
                     <div class="page-header">
@@ -273,6 +375,51 @@
                             <h3>Redis信息</h3>
                             <div id="redisInfo">加载中...</div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- 菜单管理页面（超级管理员） -->
+                <div id="menus" class="page">
+                    <div class="page-header">
+                        <h2>菜单管理</h2>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-primary" id="configurePermissionsBtn" disabled>权限配置</button>
+                            <button class="btn btn-primary" id="addMenuBtn">新增菜单</button>
+                        </div>
+                    </div>
+                    <div class="filter-bar">
+                        <div class="filter-item">
+                            <label>搜索：</label>
+                            <input type="text" id="menuSearchInput" class="form-control" placeholder="输入菜单名称、代码、路径或描述" style="width: 250px;">
+                        </div>
+                        <div class="filter-item">
+                            <button type="button" class="btn btn-primary" id="searchMenusBtn">查询</button>
+                            <button type="button" class="btn btn-secondary" id="resetMenusBtn">重置</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="menusTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">
+                                        <input type="checkbox" id="selectAllMenusInTable" onchange="toggleSelectAllMenusInTable(this)">
+                                    </th>
+                                    <th>菜单名称</th>
+                                    <th>菜单代码</th>
+                                    <th>路径</th>
+                                    <th>图标</th>
+                                    <th>排序</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="menusTableBody">
+                                <tr><td colspan="8" class="loading">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="menusPagination" class="pagination-toolbar">
+                        <!-- 分页控件将在这里动态渲染 -->
                     </div>
                 </div>
 
@@ -365,8 +512,10 @@
     <script src="js/products.js"></script>
     <script src="js/roles.js"></script>
     <script src="js/security.js"></script>
+    <script src="js/permissions.js"></script>
     <script src="js/redis.js"></script>
     <script src="js/logs.js"></script>
+    <script src="js/menus.js"></script>
     <script src="js/test.js"></script>
     <script src="js/home.js"></script>
 </body>

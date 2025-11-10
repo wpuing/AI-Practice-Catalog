@@ -165,8 +165,8 @@ public class SecurityConfig {
                 } else {
                     // 如果没有数据库配置，使用默认权限规则（兜底）
                     log.warn("未找到权限配置，使用默认权限规则");
-                    auth.requestMatchers("/api/admin/**").hasRole("ADMIN");
-                    auth.requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN");
+                    auth.requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN");
+                    auth.requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN", "SUPER_ADMIN");
                 }
 
                 // 其他接口需要认证

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.domain.menu.repository.MenuPermissionMapper">
+
+    <!-- 根据菜单ID查询功能权限列表 -->
+    <select id="selectByMenuId" resultType="com.example.demo.domain.menu.entity.MenuPermission">
+        SELECT *
+        FROM "menu_permission"
+        WHERE menu_id = #{menuId}
+          AND enabled = TRUE
+        ORDER BY sort_order ASC, create_date ASC
+    </select>
+
+    <!-- 根据菜单ID查询安全权限ID列表 -->
+    <select id="selectSecurityPermissionIdsByMenuId" resultType="java.lang.String">
+        SELECT security_permission_id
+        FROM "menu_permission"
+        WHERE menu_id = #{menuId}
+          AND enabled = TRUE
+        ORDER BY sort_order ASC, create_date ASC
+    </select>
+
+    <!-- 根据菜单ID删除所有功能权限 -->
+    <delete id="deleteByMenuId">
+        DELETE FROM "menu_permission"
+        WHERE menu_id = #{menuId}
+    </delete>
+
+    <!-- 批量插入 -->
+    <insert id="insertBatch">
+        INSERT INTO "menu_permission" (id, menu_id, security_permission_id, description, enabled, sort_order, create_date, create_user, update_date, update_user, deleted, db_version)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.menuId}, #{item.securityPermissionId}, #{item.description}, 
+             #{item.enabled}, #{item.sortOrder}, #{item.createDate}, 'system', #{item.updateDate}, NULL, 0, 1)
+        </foreach>
+    </insert>
+
+</mapper>
+

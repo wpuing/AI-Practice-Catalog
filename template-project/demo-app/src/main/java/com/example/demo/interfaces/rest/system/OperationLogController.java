@@ -27,7 +27,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/api/admin/logs")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
 public class OperationLogController {
 
     @Autowired
@@ -103,8 +103,8 @@ public class OperationLogController {
                 content.append("用户代理: ").append(log.getUserAgent()).append("\n");
                 content.append("操作时间: ").append(log.getOperationTime() != null ?
                     log.getOperationTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "").append("\n");
-                content.append("创建时间: ").append(log.getCreateTime() != null ?
-                    log.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "").append("\n");
+                content.append("创建时间: ").append(log.getCreateDate() != null ?
+                    log.getCreateDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "").append("\n");
                 content.append("-------------------------------------\n");
             }
 

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.domain.menu.repository.RoleMenuMapper">
+
+    <!-- 根据角色ID删除所有菜单关联 -->
+    <delete id="deleteByRoleId">
+        DELETE FROM "role_menu"
+        WHERE role_id = #{roleId}
+    </delete>
+
+    <!-- 批量插入角色菜单关联 -->
+    <insert id="insertBatch">
+        INSERT INTO "role_menu" (id, role_id, menu_id)
+        VALUES
+        <foreach collection="roleMenus" item="item" separator=",">
+            (#{item.id}, #{item.roleId}, #{item.menuId})
+        </foreach>
+    </insert>
+
+    <!-- 根据角色ID查询菜单ID列表 -->
+    <select id="selectMenuIdsByRoleId" resultType="java.lang.String">
+        SELECT menu_id
+        FROM "role_menu"
+        WHERE role_id = #{roleId}
+    </select>
+
+</mapper>
+

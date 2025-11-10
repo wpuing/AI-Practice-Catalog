@@ -155,6 +155,37 @@ npx http-server -p 8000
 3. 前端需要与后端配合使用
 4. 生产环境部署前请修改默认配置
 
+## 📝 更新日志
+
+### 2024-11-09 重大更新
+
+#### 数据库架构优化
+- **统一基础字段**：所有数据库表统一添加基础字段（`create_date`, `create_user`, `update_date`, `update_user`, `deleted`, `db_version`, `tenant_id`）
+- **ID字段标准化**：所有表的ID字段统一为32位随机字符（小写字母和数字）
+- **自动填充机制**：通过 `MetaObjectHandler` 自动填充创建时间、创建用户、更新时间等字段
+- **逻辑删除支持**：通过 `BaseServiceImpl` 实现统一的逻辑删除功能
+- **数据迁移脚本**：提供完整的数据库迁移脚本 `migrate_to_base_fields.sql` 和迁移指南
+
+#### 后端代码优化
+- **字段名统一**：将 `create_time`/`update_time` 统一改为 `create_date`/`update_date`
+- **修复字段引用**：修复所有Controller、Service、Mapper中使用的旧字段名
+- **自动ID生成**：通过 `IdGenerator` 和 `BaseServiceImpl` 实现自动ID生成
+- **查询过滤优化**：默认过滤已删除的数据（`deleted = 0`）
+
+#### 前端代码优化
+- **字段名同步**：前端代码同步更新为使用 `createDate`/`updateDate`
+- **修复显示问题**：修复用户列表、日志详情等页面中的时间字段显示
+
+#### 代码目录清理
+- **删除临时文件**：清理了12个临时、重复、不必要的SQL脚本和文档文件
+- **简化目录结构**：数据库目录从17个文件精简到5个必要文件
+- **保留核心文件**：只保留 `schema.sql`、`data.sql`、`migrate_to_base_fields.sql`、`MIGRATION_GUIDE.md`、`README.md`
+
+#### 主要变更文件
+- **新增**：`IdGenerator.java`、`BaseEntity.java`、`BaseServiceImpl.java`、`MetaObjectHandler.java`
+- **修改**：所有实体类、Service类、Controller类、Mapper XML文件
+- **删除**：12个临时SQL脚本和文档文件
+
 ## 📄 许可证
 
 本项目作为模板项目，供学习和参考使用。

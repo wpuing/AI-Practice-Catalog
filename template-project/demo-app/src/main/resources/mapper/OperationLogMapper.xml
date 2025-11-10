@@ -5,15 +5,15 @@
     <!-- 删除指定时间之前的日志 -->
     <delete id="deleteByCreateTimeBefore">
         DELETE FROM "operation_log"
-        WHERE create_time &lt; #{createTime}
+        WHERE create_date &lt; #{createTime}
     </delete>
 
     <!-- 查询指定时间之前的日志（用于文件持久化） -->
     <select id="selectByCreateTimeBefore" resultType="com.example.demo.domain.log.entity.OperationLog">
         SELECT *
         FROM "operation_log"
-        WHERE create_time &lt; #{createTime}
-        ORDER BY create_time ASC
+        WHERE create_date &lt; #{createTime}
+        ORDER BY create_date ASC
     </select>
 
 </mapper>

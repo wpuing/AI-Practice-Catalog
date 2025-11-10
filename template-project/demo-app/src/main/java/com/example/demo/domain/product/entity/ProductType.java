@@ -1,26 +1,20 @@
 package com.example.demo.domain.product.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.example.demo.domain.common.BaseEntity;
 import lombok.Data;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
+import lombok.EqualsAndHashCode;
 
 /**
  * 商品类型实体类
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("\"product_type\"")
-public class ProductType implements Serializable {
+public class ProductType extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
-
-    @TableId(type = IdType.ASSIGN_ID)
-    @TableField("id")
-    private String id;
 
     @TableField("type_name")
     private String typeName;
@@ -36,11 +30,5 @@ public class ProductType implements Serializable {
 
     @TableField("enabled")
     private Boolean enabled;
-
-    @TableField("create_time")
-    private LocalDateTime createTime;
-
-    @TableField("update_time")
-    private LocalDateTime updateTime;
 }
 

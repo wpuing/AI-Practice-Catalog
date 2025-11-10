@@ -10,6 +10,7 @@ class ApiClient {
         this.token = localStorage.getItem('token') || '';
         this.username = localStorage.getItem('username') || '';
         this.roles = JSON.parse(localStorage.getItem('roles') || '[]');
+        this.menus = JSON.parse(localStorage.getItem('menus') || '[]');
     }
 
     /**
@@ -23,11 +24,13 @@ class ApiClient {
     /**
      * 更新用户信息
      */
-    setUserInfo(username, roles) {
+    setUserInfo(username, roles, menus) {
         this.username = username;
         this.roles = Array.isArray(roles) ? roles : [];
+        this.menus = Array.isArray(menus) ? menus : [];
         localStorage.setItem('username', username);
         localStorage.setItem('roles', JSON.stringify(this.roles));
+        localStorage.setItem('menus', JSON.stringify(this.menus));
     }
 
     /**
@@ -37,9 +40,11 @@ class ApiClient {
         this.token = '';
         this.username = '';
         this.roles = [];
+        this.menus = [];
         localStorage.removeItem('token');
         localStorage.removeItem('username');
         localStorage.removeItem('roles');
+        localStorage.removeItem('menus');
     }
 
     /**
@@ -53,7 +58,24 @@ class ApiClient {
      * 检查是否有管理员权限
      */
     isAdmin() {
-        return this.roles.includes('ADMIN');
+        return this.roles.includes('ADMIN') || this.isSuperAdmin();
+    }
+
+    /**
+     * 检查是否有超级管理员权限
+     */
+    isSuperAdmin() {
+        return this.roles.includes('SUPER_ADMIN');
+    }
+
+    /**
+     * 检查是否有菜单权限
+     */
+    hasMenuPermission(menuCode) {
+        if (this.isSuperAdmin()) {
+            return true; // 超级管理员拥有所有菜单权限
+        }
+        return this.menus.some(menu => menu.menuCode === menuCode && menu.enabled);
     }
 
     /**
@@ -190,7 +212,11 @@ class ApiClient {
         const response = await this.post('/auth/login', { username, password });
         if (response.code === 200 && response.data.token) {
             this.setToken(response.data.token);
-            this.setUserInfo(response.data.username, response.data.roles || []);
+            this.setUserInfo(
+                response.data.username, 
+                response.data.roles || [],
+                response.data.menus || []
+            );
             return response.data;
         }
         throw new Error(response.message || '登录失败');
@@ -207,7 +233,19 @@ class ApiClient {
      * 获取当前用户信息
      */
     async getCurrentUser() {
-        return this.get('/auth/me');
+        const response = await this.get('/auth/me');
+        if (response.code === 200 && response.data) {
+            // 更新本地存储的角色和菜单信息
+            if (response.data.roles) {
+                this.roles = response.data.roles;
+                localStorage.setItem('roles', JSON.stringify(this.roles));
+            }
+            if (response.data.menus) {
+                this.menus = response.data.menus;
+                localStorage.setItem('menus', JSON.stringify(this.menus));
+            }
+        }
+        return response;
     }
 
     /**
@@ -238,8 +276,17 @@ class ApiClient {
     /**
      * 获取用户列表（分页）
      */
-    async getUsers(current = 1, size = 10) {
-        return this.get('/users', { current, size });
+    async getUsers(current = 1, size = 10, keyword = null) {
+        const params = { current, size };
+        if (keyword) params.keyword = keyword;
+        return this.get('/users', params);
+    }
+
+    /**
+     * 获取控制台统计数据（真实数据库统计）
+     */
+    async getStatistics() {
+        return this.get('/admin/statistics');
     }
 
     /**
@@ -282,9 +329,10 @@ class ApiClient {
     /**
      * 获取商品类型列表（分页）
      */
-    async getProductTypes(current = 1, size = 10, enabled = null) {
+    async getProductTypes(current = 1, size = 10, enabled = null, keyword = null) {
         const params = { current, size };
         if (enabled !== null) params.enabled = enabled;
+        if (keyword) params.keyword = keyword;
         return this.get('/product-types', params);
     }
 
@@ -335,10 +383,11 @@ class ApiClient {
     /**
      * 获取商品列表（分页）
      */
-    async getProducts(current = 1, size = 10, typeId = null, enabled = null) {
+    async getProducts(current = 1, size = 10, typeId = null, enabled = null, keyword = null) {
         const params = { current, size };
         if (typeId) params.typeId = typeId;
         if (enabled !== null) params.enabled = enabled;
+        if (keyword) params.keyword = keyword;
         return this.get('/products', params);
     }
 
@@ -430,8 +479,17 @@ class ApiClient {
     /**
      * 获取所有角色
      */
-    async getRoles() {
-        return this.get('/admin/roles');
+    async getRoles(keyword = null) {
+        const params = {};
+        if (keyword) params.keyword = keyword;
+        return this.get('/admin/roles', params);
+    }
+
+    /**
+     * 根据ID获取角色
+     */
+    async getRoleById(id) {
+        return this.get(`/admin/roles/${id}`);
     }
 
     /**
@@ -456,17 +514,31 @@ class ApiClient {
     }
 
     /**
-     * 为用户分配角色
+     * 为用户分配角色（批量）
      */
-    async assignRole(roleId, userId) {
-        return this.post(`/admin/roles/${roleId}/assign`, { userId });
+    async assignRoles(userId, roleIds) {
+        return this.post('/admin/roles/assign', { userId, roleIds });
     }
 
     /**
-     * 移除用户角色
+     * 获取用户的角色列表（角色代码）
      */
-    async unassignRole(roleId, userId) {
-        return this.delete(`/admin/roles/${roleId}/unassign?userId=${userId}`);
+    async getUserRoles(userId) {
+        return this.get(`/admin/roles/user/${userId}`);
+    }
+
+    /**
+     * 获取用户的角色列表（完整角色对象）
+     */
+    async getUserRoleDetails(userId) {
+        return this.get(`/admin/roles/user/${userId}/details`);
+    }
+
+    /**
+     * 移除用户的角色
+     */
+    async removeUserRole(userId, roleId) {
+        return this.delete(`/admin/roles/user/${userId}/role/${roleId}`);
     }
 
     // ========== 安全配置接口 ==========
@@ -507,10 +579,19 @@ class ApiClient {
     }
 
     /**
-     * 获取所有权限
+     * 获取所有权限（分页）
      */
-    async getPermissions() {
-        return this.get('/security/config/permission');
+    async getPermissions(current = 1, size = 15, keyword = '') {
+        const params = { current, size };
+        if (keyword) params.keyword = keyword;
+        return this.get('/security/config/permission', params);
+    }
+
+    /**
+     * 获取所有权限（不分页，用于下拉选择等场景）
+     */
+    async getAllPermissionsList() {
+        return this.get('/security/config/permission/all');
     }
 
     /**
@@ -551,6 +632,22 @@ class ApiClient {
     }
 
     /**
+     * 获取在线用户列表（分页）
+     */
+    async getOnlineUsers(current = 1, size = 15, keyword = null) {
+        const params = { current, size };
+        if (keyword) params.keyword = keyword;
+        return this.get('/redis/online-users', params);
+    }
+
+    /**
+     * 踢用户下线
+     */
+    async kickUserOffline(token) {
+        return this.post('/redis/online-users/kick', { token });
+    }
+
+    /**
      * 查询Redis Keys
      */
     async getRedisKeys(pattern = '*') {
@@ -583,6 +680,101 @@ class ApiClient {
      */
     async getRedisTokens() {
         return this.get('/redis/tokens');
+    }
+
+    // ========== 菜单管理接口 ==========
+
+    /**
+     * 获取所有菜单（分页）
+     */
+    async getMenus(current = 1, size = 15, keyword = '') {
+        const params = { current, size };
+        if (keyword) params.keyword = keyword;
+        return this.get('/admin/menus', params);
+    }
+
+    /**
+     * 获取所有菜单（不分页，用于下拉选择等场景）
+     */
+    async getAllMenusList() {
+        return this.get('/admin/menus/all');
+    }
+
+    /**
+     * 获取所有启用的菜单
+     */
+    async getEnabledMenus() {
+        return this.get('/admin/menus/enabled');
+    }
+
+    /**
+     * 根据角色ID获取菜单列表
+     */
+    async getMenusByRoleId(roleId) {
+        return this.get(`/admin/menus/role/${roleId}`);
+    }
+
+    /**
+     * 根据ID获取菜单
+     */
+    async getMenuById(id) {
+        return this.get(`/admin/menus/${id}`);
+    }
+
+    /**
+     * 创建菜单
+     */
+    async createMenu(menuData) {
+        return this.post('/admin/menus', menuData);
+    }
+
+    /**
+     * 更新菜单
+     */
+    async updateMenu(id, menuData) {
+        return this.put(`/admin/menus/${id}`, menuData);
+    }
+
+    /**
+     * 删除菜单
+     */
+    async deleteMenu(id) {
+        return this.delete(`/admin/menus/${id}`);
+    }
+
+    /**
+     * 为角色分配菜单
+     */
+    async assignMenusToRole(roleId, menuIds) {
+        return this.post('/admin/menus/assign', { roleId, menuIds });
+    }
+
+    /**
+     * 获取角色的菜单ID列表
+     */
+    async getMenuIdsByRoleId(roleId) {
+        return this.get(`/admin/menus/role/${roleId}/menu-ids`);
+    }
+
+    /**
+     * 根据菜单ID获取功能权限列表
+     */
+    async getMenuPermissions(menuId) {
+        return this.get(`/admin/menus/${menuId}/permissions`);
+    }
+
+    /**
+     * 根据菜单ID获取安全权限ID列表
+     */
+    async getMenuPermissionIds(menuId) {
+        return this.get(`/admin/menus/${menuId}/permission-ids`);
+    }
+
+    /**
+     * 为菜单分配安全权限（通过 security_permission ID）
+     */
+    async assignPermissionsToMenu(menuId, securityPermissionIds) {
+        return this.post(`/admin/menus/${menuId}/permissions`, { securityPermissionIds });
     }
 
     // ========== 操作日志接口 ==========

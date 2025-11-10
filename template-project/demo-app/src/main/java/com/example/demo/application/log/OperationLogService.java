@@ -66,8 +66,9 @@ public class OperationLogService {
             if (operationLog.getOperationTime() == null) {
                 operationLog.setOperationTime(LocalDateTime.now());
             }
-            if (operationLog.getCreateTime() == null) {
-                operationLog.setCreateTime(LocalDateTime.now());
+            // createDate由MetaObjectHandler自动填充，如果operationLog有createTime字段，也设置一下（兼容性）
+            if (operationLog.getCreateDate() == null) {
+                operationLog.setCreateDate(LocalDateTime.now());
             }
 
             // 保存到数据库
@@ -292,8 +293,8 @@ public class OperationLogService {
                     writer.write("用户代理: " + log.getUserAgent() + "\n");
                     writer.write("操作时间: " + (log.getOperationTime() != null ? 
                         log.getOperationTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "") + "\n");
-                    writer.write("创建时间: " + (log.getCreateTime() != null ? 
-                        log.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "") + "\n");
+                    writer.write("创建时间: " + (log.getCreateDate() != null ? 
+                        log.getCreateDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "") + "\n");
                     writer.write("-------------------------------------\n");
                 }
 

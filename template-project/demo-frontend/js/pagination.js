@@ -158,9 +158,9 @@ function handlePageChange(pageType, page) {
                 window.currentPage = page;
             }
             if (typeof window.loadUsers === 'function') {
-                window.loadUsers(page);
+                window.loadUsers(page, window.userSearchKeyword || '');
             } else if (typeof loadUsers === 'function') {
-                loadUsers(page);
+                loadUsers(page, window.userSearchKeyword || '');
             }
             break;
         case 'products':
@@ -168,9 +168,9 @@ function handlePageChange(pageType, page) {
                 window.productsPage = page;
             }
             if (typeof window.loadProducts === 'function') {
-                window.loadProducts(page);
+                window.loadProducts(page, window.productSearchKeyword || '');
             } else if (typeof loadProducts === 'function') {
-                loadProducts(page);
+                loadProducts(page, window.productSearchKeyword || '');
             }
             break;
         case 'product-types':
@@ -178,9 +178,19 @@ function handlePageChange(pageType, page) {
                 window.productTypesPage = page;
             }
             if (typeof window.loadProductTypes === 'function') {
-                window.loadProductTypes(page);
+                window.loadProductTypes(page, window.productTypeSearchKeyword || '');
             } else if (typeof loadProductTypes === 'function') {
-                loadProductTypes(page);
+                loadProductTypes(page, window.productTypeSearchKeyword || '');
+            }
+            break;
+        case 'menus':
+            if (typeof window.currentMenuPage !== 'undefined') {
+                window.currentMenuPage = page;
+            }
+            if (typeof window.loadMenus === 'function') {
+                window.loadMenus(page, window.menuPageSize || 15, window.menuSearchKeyword || '');
+            } else if (typeof loadMenus === 'function') {
+                loadMenus(page, window.menuPageSize || 15, window.menuSearchKeyword || '');
             }
             break;
         case 'logs':
@@ -189,6 +199,22 @@ function handlePageChange(pageType, page) {
             }
             if (typeof window.loadLogs === 'function') {
                 window.loadLogs(page);
+            }
+            break;
+        case 'permissions':
+            if (typeof window.currentPermissionPage !== 'undefined') {
+                window.currentPermissionPage = page;
+            }
+            if (typeof window.loadPermissions === 'function') {
+                window.loadPermissions(page, window.permissionPageSize || 15, window.permissionSearchKeyword || '');
+            } else if (typeof loadPermissions === 'function') {
+                loadPermissions(page, window.permissionPageSize || 15, window.permissionSearchKeyword || '');
+            }
+            break;
+        case 'onlineUsers':
+            // 在线用户列表的分页处理在模态框内部，需要通过全局函数调用
+            if (typeof window.loadOnlineUsersInModal === 'function') {
+                window.loadOnlineUsersInModal(page);
             }
             break;
         default:
@@ -211,9 +237,9 @@ function handlePageSizeChange(pageType, newSize) {
                 window.currentPage = 1;
             }
             if (typeof window.loadUsers === 'function') {
-                window.loadUsers(1);
+                window.loadUsers(1, window.userSearchKeyword || '');
             } else if (typeof loadUsers === 'function') {
-                loadUsers(1);
+                loadUsers(1, window.userSearchKeyword || '');
             }
             break;
         case 'products':
@@ -224,9 +250,9 @@ function handlePageSizeChange(pageType, newSize) {
                 window.productsPage = 1;
             }
             if (typeof window.loadProducts === 'function') {
-                window.loadProducts(1);
+                window.loadProducts(1, window.productSearchKeyword || '');
             } else if (typeof loadProducts === 'function') {
-                loadProducts(1);
+                loadProducts(1, window.productSearchKeyword || '');
             }
             break;
         case 'product-types':
@@ -237,9 +263,22 @@ function handlePageSizeChange(pageType, newSize) {
                 window.productTypesPage = 1;
             }
             if (typeof window.loadProductTypes === 'function') {
-                window.loadProductTypes(1);
+                window.loadProductTypes(1, window.productTypeSearchKeyword || '');
             } else if (typeof loadProductTypes === 'function') {
-                loadProductTypes(1);
+                loadProductTypes(1, window.productTypeSearchKeyword || '');
+            }
+            break;
+        case 'menus':
+            if (typeof window.menuPageSize !== 'undefined') {
+                window.menuPageSize = size;
+            }
+            if (typeof window.currentMenuPage !== 'undefined') {
+                window.currentMenuPage = 1;
+            }
+            if (typeof window.loadMenus === 'function') {
+                window.loadMenus(1, size, window.menuSearchKeyword || '');
+            } else if (typeof loadMenus === 'function') {
+                loadMenus(1, size, window.menuSearchKeyword || '');
             }
             break;
         case 'logs':
@@ -251,6 +290,19 @@ function handlePageSizeChange(pageType, newSize) {
             }
             if (typeof window.loadLogs === 'function') {
                 window.loadLogs(1);
+            }
+            break;
+        case 'permissions':
+            if (typeof window.permissionPageSize !== 'undefined') {
+                window.permissionPageSize = size;
+            }
+            if (typeof window.currentPermissionPage !== 'undefined') {
+                window.currentPermissionPage = 1;
+            }
+            if (typeof window.loadPermissions === 'function') {
+                window.loadPermissions(1, size, window.permissionSearchKeyword || '');
+            } else if (typeof loadPermissions === 'function') {
+                loadPermissions(1, size, window.permissionSearchKeyword || '');
             }
             break;
         default:

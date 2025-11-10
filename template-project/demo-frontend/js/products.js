@@ -5,13 +5,15 @@
 let productsPage = 1;
 let productsPageSize = 15; // 默认15条
 let productTypeOptions = [];
+let productSearchKeyword = ''; // 商品搜索关键词
 
 /**
  * 加载商品列表
  */
-async function loadProducts(page = 1) {
+async function loadProducts(page = 1, keyword = productSearchKeyword) {
     try {
-        const response = await api.getProducts(page, productsPageSize);
+        productSearchKeyword = keyword || '';
+        const response = await api.getProducts(page, productsPageSize, null, null, keyword);
         if (response.code === 200) {
             const products = response.data.records || response.data.list || [];
             const total = response.data.total || products.length;
@@ -345,6 +347,45 @@ async function deleteProduct(id, productName) {
 async function initProducts() {
     await loadProductTypeOptions();
     loadProducts(productsPage);
+    bindProductSearchEvents();
+}
+
+/**
+ * 绑定商品搜索事件
+ */
+function bindProductSearchEvents() {
+    const searchBtn = document.getElementById('searchProductsBtn');
+    const resetBtn = document.getElementById('resetProductsBtn');
+    const searchInput = document.getElementById('productSearchInput');
+    
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            const keyword = searchInput ? searchInput.value.trim() : '';
+            productsPage = 1;
+            loadProducts(1, keyword);
+        });
+    }
+    
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            productSearchKeyword = '';
+            productsPage = 1;
+            loadProducts(1, '');
+        });
+    }
+    
+    if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const keyword = searchInput.value.trim();
+                productsPage = 1;
+                loadProducts(1, keyword);
+            }
+        });
+    }
 }
 
 // 导出供全局使用
@@ -352,6 +393,7 @@ window.initProducts = initProducts;
 window.loadProducts = loadProducts;
 window.productsPage = productsPage;
 window.productsPageSize = productsPageSize;
+window.productSearchKeyword = productSearchKeyword;
 
 // 导出供全局使用
 window.editProduct = editProduct;

@@ -1,26 +1,20 @@
 package com.example.demo.domain.security.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.example.demo.domain.common.BaseEntity;
 import lombok.Data;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
+import lombok.EqualsAndHashCode;
 
 /**
  * 安全权限实体
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("\"security_permission\"")
-public class SecurityPermission implements Serializable {
+public class SecurityPermission extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
-
-    @TableId(type = IdType.ASSIGN_ID)
-    @TableField("id")
-    private String id;
 
     @TableField("path_pattern")
     private String pathPattern;
@@ -39,11 +33,5 @@ public class SecurityPermission implements Serializable {
 
     @TableField("sort_order")
     private Integer sortOrder;
-
-    @TableField("create_time")
-    private LocalDateTime createTime;
-
-    @TableField("update_time")
-    private LocalDateTime updateTime;
 }
 

@@ -1,6 +1,8 @@
 package com.example.demo.interfaces.rest.role;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.demo.common.result.Result;
 import com.example.demo.domain.security.entity.SecurityPermission;
 import com.example.demo.domain.security.entity.SecurityWhitelist;
@@ -9,6 +11,7 @@ import com.example.demo.domain.security.repository.SecurityWhitelistMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -21,7 +24,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/api/security/config")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
 public class SecurityConfigController {
 
     @Autowired
@@ -69,8 +72,7 @@ public class SecurityConfigController {
         if (whitelist.getSortOrder() == null) {
             whitelist.setSortOrder(0);
         }
-        whitelist.setCreateTime(LocalDateTime.now());
-        whitelist.setUpdateTime(LocalDateTime.now());
+        // createDate和updateDate由MetaObjectHandler自动填充
         
         boolean saved = whitelistMapper.insert(whitelist) > 0;
         if (saved) {
@@ -95,7 +97,7 @@ public class SecurityConfigController {
         if (whitelist.getPathPattern() != null) {
             whitelist.setPathPattern(whitelist.getPathPattern().trim());
         }
-        whitelist.setUpdateTime(LocalDateTime.now());
+        // updateDate由MetaObjectHandler自动填充
         
         boolean updated = whitelistMapper.updateById(whitelist) > 0;
         if (updated) {
@@ -123,11 +125,41 @@ public class SecurityConfigController {
     // ========== 权限管理 ==========
 
     /**
-     * 获取所有权限配置
+     * 获取所有权限配置（分页）
      */
     @GetMapping("/permission")
-    public Result<List<SecurityPermission>> getAllPermissions() {
-        List<SecurityPermission> permissions = permissionMapper.selectList(null);
+    public Result<IPage<SecurityPermission>> getAllPermissions(
+            @RequestParam(defaultValue = "1") Integer current,
+            @RequestParam(defaultValue = "15") Integer size,
+            @RequestParam(required = false) String keyword) {
+        Page<SecurityPermission> page = new Page<>(current, size);
+        LambdaQueryWrapper<SecurityPermission> wrapper = new LambdaQueryWrapper<>();
+        
+        if (StringUtils.hasText(keyword)) {
+            wrapper.and(w -> w.like(SecurityPermission::getPathPattern, keyword)
+                    .or()
+                    .like(SecurityPermission::getDescription, keyword)
+                    .or()
+                    .like(SecurityPermission::getRequiredRoles, keyword));
+        }
+        
+        wrapper.orderByAsc(SecurityPermission::getSortOrder)
+               .orderByAsc(SecurityPermission::getCreateDate);
+        
+        IPage<SecurityPermission> permissionPage = permissionMapper.selectPage(page, wrapper);
+        return Result.success(permissionPage);
+    }
+
+    /**
+     * 获取所有权限配置（不分页，用于下拉选择等场景）
+     */
+    @GetMapping("/permission/all")
+    public Result<List<SecurityPermission>> getAllPermissionsList() {
+        List<SecurityPermission> permissions = permissionMapper.selectList(
+                new LambdaQueryWrapper<SecurityPermission>()
+                        .orderByAsc(SecurityPermission::getSortOrder)
+                        .orderByAsc(SecurityPermission::getCreateDate)
+        );
         return Result.success(permissions);
     }
 
@@ -159,8 +191,7 @@ public class SecurityConfigController {
         if (permission.getSortOrder() == null) {
             permission.setSortOrder(0);
         }
-        permission.setCreateTime(LocalDateTime.now());
-        permission.setUpdateTime(LocalDateTime.now());
+        // createDate和updateDate由MetaObjectHandler自动填充
         
         boolean saved = permissionMapper.insert(permission) > 0;
         if (saved) {
@@ -185,7 +216,7 @@ public class SecurityConfigController {
         if (permission.getPathPattern() != null) {
             permission.setPathPattern(permission.getPathPattern().trim());
         }
-        permission.setUpdateTime(LocalDateTime.now());
+        // updateDate由MetaObjectHandler自动填充
         
         boolean updated = permissionMapper.updateById(permission) > 0;
         if (updated) {

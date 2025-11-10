@@ -4,14 +4,20 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.application.user.UserService;
+import com.example.demo.application.role.UserRoleService;
+import com.example.demo.infrastructure.cache.RoleCacheService;
+import com.example.demo.domain.role.repository.RoleMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
@@ -23,11 +29,26 @@ public class UserController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private UserRoleService userRoleService;
+
+    @Autowired
+    private RoleCacheService roleCacheService;
+
+    @Autowired
+    private RoleMapper roleMapper;
+
     /**
      * 创建用户
      */
     @PostMapping
     public ResponseEntity<Map<String, Object>> createUser(@RequestBody User user) {
+        // 获取当前用户角色
+        org.springframework.security.core.Authentication authentication = 
+            SecurityContextHolder.getContext().getAuthentication();
+        boolean isSuperAdmin = authentication.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+        
         // 检查用户名是否已存在
         User existingUser = userService.getOne(
                 new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<User>()
@@ -45,6 +66,18 @@ public class UserController {
         }
 
         boolean saved = userService.save(user);
+        
+        // 如果是普通管理员创建用户，默认分配 USER 角色
+        if (saved && !isSuperAdmin) {
+            // 查找 USER 角色ID并分配
+            com.example.demo.domain.role.entity.Role userRole = roleMapper.selectOne(
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<com.example.demo.domain.role.entity.Role>()
+                    .eq("role_code", "USER"));
+            if (userRole != null) {
+                userRoleService.assignRoleToUser(user.getId(), userRole.getId());
+            }
+        }
+        
         Map<String, Object> result = new HashMap<>();
         if (saved) {
             result.put("success", true);
@@ -77,14 +110,66 @@ public class UserController {
     }
 
     /**
-     * 查询所有用户
+     * 查询所有用户（根据当前用户角色过滤）
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllUsers(
             @RequestParam(defaultValue = "1") Integer current,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String keyword) {
+        // 获取当前用户角色
+        org.springframework.security.core.Authentication authentication = 
+            SecurityContextHolder.getContext().getAuthentication();
+        boolean isSuperAdmin = authentication.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+        
         Page<User> page = new Page<>(current, size);
-        Page<User> userPage = userService.page(page);
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        
+        // 如果有关键词，添加查询条件
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            queryWrapper.like("username", keyword.trim());
+        }
+        
+        Page<User> userPage = userService.page(page, queryWrapper);
+        
+        // 如果是普通管理员，只返回 USER 角色的用户
+        if (!isSuperAdmin) {
+            // 先应用关键词过滤，再应用角色过滤
+            QueryWrapper<User> adminQueryWrapper = new QueryWrapper<>();
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                adminQueryWrapper.like("username", keyword.trim());
+            }
+            List<User> allUsers = userService.list(adminQueryWrapper);
+            
+            List<User> filteredUsers = allUsers.stream()
+                .filter(user -> {
+                    List<String> userRoles = roleCacheService.getUserRoles(user.getId());
+                    // 只返回只有 USER 角色的用户（不能有 ADMIN 或 SUPER_ADMIN 角色）
+                    return userRoles.stream().allMatch(role -> "USER".equals(role));
+                })
+                .collect(Collectors.toList());
+            
+            // 分页处理
+            int start = (current - 1) * size;
+            int end = Math.min(start + size, filteredUsers.size());
+            List<User> pagedUsers = start < filteredUsers.size() 
+                ? filteredUsers.subList(start, end) 
+                : new ArrayList<>();
+            
+            // 重新计算分页信息
+            long totalFiltered = filteredUsers.size();
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("data", pagedUsers);
+            result.put("total", totalFiltered);
+            result.put("current", current);
+            result.put("size", size);
+            return ResponseEntity.ok(result);
+        }
+        
+        // 超级管理员返回所有用户
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
         result.put("data", userPage.getRecords());
@@ -99,6 +184,25 @@ public class UserController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, Object>> updateUser(@PathVariable String id, @RequestBody User user) {
+        // 获取当前用户角色
+        org.springframework.security.core.Authentication authentication = 
+            SecurityContextHolder.getContext().getAuthentication();
+        boolean isSuperAdmin = authentication.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+        
+        // 检查要更新的用户是否可以被当前用户管理
+        if (!isSuperAdmin) {
+            List<String> targetUserRoles = roleCacheService.getUserRoles(id);
+            // 普通管理员只能更新 USER 角色的用户
+            boolean canManage = targetUserRoles.stream().allMatch(role -> "USER".equals(role));
+            if (!canManage) {
+                Map<String, Object> result = new HashMap<>();
+                result.put("success", false);
+                result.put("message", "您只能修改普通用户");
+                return ResponseEntity.status(403).body(result);
+            }
+        }
+        
         user.setId(id);
         
         // 如果提供了新密码，则加密
@@ -131,6 +235,25 @@ public class UserController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable String id) {
+        // 获取当前用户角色
+        org.springframework.security.core.Authentication authentication = 
+            SecurityContextHolder.getContext().getAuthentication();
+        boolean isSuperAdmin = authentication.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+        
+        // 检查要删除的用户是否可以被当前用户管理
+        if (!isSuperAdmin) {
+            List<String> targetUserRoles = roleCacheService.getUserRoles(id);
+            // 普通管理员只能删除 USER 角色的用户
+            boolean canManage = targetUserRoles.stream().allMatch(role -> "USER".equals(role));
+            if (!canManage) {
+                Map<String, Object> result = new HashMap<>();
+                result.put("success", false);
+                result.put("message", "您只能删除普通用户");
+                return ResponseEntity.status(403).body(result);
+            }
+        }
+        
         boolean removed = userService.removeById(id);
         Map<String, Object> result = new HashMap<>();
         if (removed) {

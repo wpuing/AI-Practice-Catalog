@@ -11,16 +11,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    // 从后端获取最新的角色和菜单信息
+    try {
+        const userResponse = await api.getCurrentUser();
+        if (userResponse.code === 200 && userResponse.data) {
+            // 更新角色信息
+            if (userResponse.data.roles) {
+                api.roles = userResponse.data.roles;
+                localStorage.setItem('roles', JSON.stringify(api.roles));
+                console.log('用户角色已更新:', api.roles);
+            }
+            // 更新菜单信息
+            if (userResponse.data.menus) {
+                api.menus = userResponse.data.menus;
+                localStorage.setItem('menus', JSON.stringify(api.menus));
+                console.log('用户菜单已更新:', api.menus);
+            }
+        }
+    } catch (error) {
+        console.error('获取用户信息失败:', error);
+    }
+
     // 显示用户信息
     updateUserInfo();
 
-    // 显示/隐藏管理员功能
-    if (api.isAdmin()) {
-        const adminSection = document.getElementById('adminSection');
-        if (adminSection) {
-            adminSection.style.display = 'block';
-        }
-    }
+    // 根据权限显示/隐藏菜单项
+    updateMenuVisibility();
+    
+    // 初始化头部信息栏（时间、日期、温度、在线人数）
+    initHeaderInfoBar();
 
     // 使用事件委托绑定所有新增按钮的点击事件（必须在页面加载后立即执行）
     bindAddButtons();
@@ -56,8 +75,79 @@ function updateUserInfo() {
 
     if (roleEl) {
         const roles = api.roles || [];
-        roleEl.textContent = roles.length > 0 ? roles.join(', ') : '-';
+        // 如果有角色，显示角色名称；如果没有角色，显示"普通用户"
+        if (roles.length > 0) {
+            // 将角色代码转换为中文显示
+            const roleNames = roles.map(role => {
+                switch(role) {
+                    case 'SUPER_ADMIN':
+                        return '超级管理员';
+                    case 'ADMIN':
+                        return '管理员';
+                    case 'USER':
+                        return '普通用户';
+                    default:
+                        return role;
+                }
+            });
+            roleEl.textContent = roleNames.join(', ');
+        } else {
+            roleEl.textContent = '普通用户';
+        }
     }
+}
+
+/**
+ * 根据用户权限更新菜单可见性
+ */
+function updateMenuVisibility() {
+    const menus = api.menus || [];
+    const isSuperAdmin = api.isSuperAdmin();
+    const isAdmin = api.isAdmin();
+    
+    // 菜单代码到菜单项的映射
+    const menuMap = {
+        'DASHBOARD': { selector: 'a[data-page="dashboard"]' },
+        'USERS': { selector: 'a[data-page="users"]' },
+        'PRODUCT_TYPES': { selector: 'a[data-page="product-types"]' },
+        'PRODUCTS': { selector: 'a[data-page="products"]' },
+        'ROLES': { selector: '#rolesMenuItem' },
+        'SECURITY': { selector: '#securityMenuItem' },
+        'PERMISSIONS': { selector: '#permissionsMenuItem' },
+        'REDIS': { selector: '#redisMenuItem' },
+        'LOGS': { selector: '#logsMenuItem' },
+        'MENUS': { selector: '#menusMenuItem' },
+        'TEST': { selector: 'a[data-page="test"]' }
+    };
+    
+    // 管理员功能区域标题
+    const adminSection = document.getElementById('adminSection');
+    if (adminSection) {
+        // 如果有任何管理员专用菜单，显示标题
+        const hasAdminMenus = menus.some(m => 
+            ['ROLES', 'SECURITY', 'PERMISSIONS', 'REDIS', 'LOGS', 'MENUS'].includes(m.menuCode)
+        ) || isAdmin;
+        adminSection.style.display = hasAdminMenus ? 'block' : 'none';
+    }
+    
+    // 根据菜单权限显示/隐藏菜单项
+    Object.keys(menuMap).forEach(menuCode => {
+        const config = menuMap[menuCode];
+        const element = document.querySelector(config.selector);
+        if (element) {
+            const li = element.closest('li');
+            if (li) {
+                // 超级管理员拥有所有权限
+                if (isSuperAdmin) {
+                    li.style.display = 'block';
+                } else {
+                    // 检查用户是否有该菜单权限
+                    const hasPermission = api.hasMenuPermission(menuCode);
+                    li.style.display = hasPermission ? 'block' : 'none';
+                }
+            }
+        }
+    });
 }
 
 /**
@@ -70,21 +160,109 @@ async function showUserDetail() {
             const userData = response.data.user || {};
             const roles = response.data.roles || [];
             
+            // 将角色代码转换为中文显示
+            const roleNames = roles.map(role => {
+                switch(role) {
+                    case 'SUPER_ADMIN':
+                        return '超级管理员';
+                    case 'ADMIN':
+                        return '管理员';
+                    case 'USER':
+                        return '普通用户';
+                    default:
+                        return role;
+                }
+            });
+            
+            // 格式化时间
+            const formatDateTime = (dateTimeStr) => {
+                if (!dateTimeStr) return '-';
+                try {
+                    const date = new Date(dateTimeStr);
+                    return date.toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                } catch (e) {
+                    return dateTimeStr;
+                }
+            };
+            
             // 创建详情内容
             const detailContent = `
-                <div style="padding: 20px;">
-                    <h3 style="margin-bottom: 20px; color: var(--primary-color);">用户详情</h3>
-                    <div style="line-height: 2;">
-                        <p><strong>用户ID:</strong> ${userData.id || '-'}</p>
-                        <p><strong>用户名:</strong> ${userData.username || '-'}</p>
-                        <p><strong>角色:</strong> ${roles.length > 0 ? roles.join(', ') : '无'}</p>
-                        <p><strong>创建时间:</strong> ${userData.createTime ? new Date(userData.createTime).toLocaleString('zh-CN') : '-'}</p>
-                        <p><strong>更新时间:</strong> ${userData.updateTime ? new Date(userData.updateTime).toLocaleString('zh-CN') : '-'}</p>
+                <div class="user-detail-container">
+                    <div class="user-detail-header">
+                        <div class="user-avatar">
+                            <span style="font-size: 48px;">👤</span>
+                        </div>
+                        <div class="user-basic-info">
+                            <h3 class="user-name">${escapeHtml(userData.username || '-')}</h3>
+                            <div class="user-roles">
+                                ${roles.length > 0 ? roleNames.map(role => {
+                                    let roleClass = 'badge-secondary';
+                                    if (role === '超级管理员') roleClass = 'badge-danger';
+                                    else if (role === '管理员') roleClass = 'badge-info';
+                                    else if (role === '普通用户') roleClass = 'badge-success';
+                                    return `<span class="badge ${roleClass}">${escapeHtml(role)}</span>`;
+                                }).join(' ') : '<span class="badge badge-secondary">无角色</span>'}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="user-detail-body">
+                        <div class="detail-info-grid">
+                            <div class="detail-info-item">
+                                <div class="detail-info-icon">🆔</div>
+                                <div class="detail-info-content">
+                                    <div class="detail-info-label">用户ID</div>
+                                    <div class="detail-info-value">${escapeHtml(userData.id || '-')}</div>
+                                </div>
+                            </div>
+                            <div class="detail-info-item">
+                                <div class="detail-info-icon">👤</div>
+                                <div class="detail-info-content">
+                                    <div class="detail-info-label">用户名</div>
+                                    <div class="detail-info-value">${escapeHtml(userData.username || '-')}</div>
+                                </div>
+                            </div>
+                            <div class="detail-info-item">
+                                <div class="detail-info-icon">🔐</div>
+                                <div class="detail-info-content">
+                                    <div class="detail-info-label">角色</div>
+                                    <div class="detail-info-value">
+                                        ${roles.length > 0 ? roleNames.map(role => {
+                                            let roleClass = 'badge-secondary';
+                                            if (role === '超级管理员') roleClass = 'badge-danger';
+                                            else if (role === '管理员') roleClass = 'badge-info';
+                                            else if (role === '普通用户') roleClass = 'badge-success';
+                                            return `<span class="badge ${roleClass}">${escapeHtml(role)}</span>`;
+                                        }).join(' ') : '<span class="badge badge-secondary">无角色</span>'}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="detail-info-item">
+                                <div class="detail-info-icon">📅</div>
+                                <div class="detail-info-content">
+                                    <div class="detail-info-label">创建时间</div>
+                                    <div class="detail-info-value">${formatDateTime(userData.createDate)}</div>
+                                </div>
+                            </div>
+                            <div class="detail-info-item">
+                                <div class="detail-info-icon">🔄</div>
+                                <div class="detail-info-content">
+                                    <div class="detail-info-label">更新时间</div>
+                                    <div class="detail-info-value">${formatDateTime(userData.updateDate)}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
             
-            const modal = createModal('用户详情', detailContent, '');
+            const modal = createModal('用户详情', detailContent, '', null, 'medium');
         } else {
             showMessage(response.message || '获取用户信息失败', 'error');
         }
@@ -92,6 +270,16 @@ async function showUserDetail() {
         console.error('获取用户详情失败:', error);
         showMessage(error.message || '获取用户信息失败', 'error');
     }
+}
+
+/**
+ * HTML转义函数
+ */
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 /**
@@ -117,6 +305,44 @@ function initNavigation() {
  * 显示指定页面
  */
 function showPage(pageName) {
+    // 页面名称到菜单代码的映射
+    const pageMenuMap = {
+        'dashboard': 'DASHBOARD',
+        'users': 'USERS',
+        'product-types': 'PRODUCT_TYPES',
+        'products': 'PRODUCTS',
+        'roles': 'ROLES',
+        'security': 'SECURITY',
+        'redis': 'REDIS',
+        'logs': 'LOGS',
+        'menus': 'MENUS',
+        'test': 'TEST'
+    };
+    
+    // 检查权限：根据菜单权限控制访问
+    const menuCode = pageMenuMap[pageName];
+    
+    // 调试信息
+    if (menuCode) {
+        console.log('页面权限检查:', {
+            pageName,
+            menuCode,
+            isSuperAdmin: api.isSuperAdmin(),
+            roles: api.roles,
+            hasMenuPermission: api.hasMenuPermission(menuCode),
+            menus: api.menus
+        });
+    }
+    
+    // 超级管理员拥有所有权限，直接允许访问
+    if (menuCode && !api.isSuperAdmin() && !api.hasMenuPermission(menuCode)) {
+        // 无权限访问，重定向到控制台
+        console.warn('无权限访问页面:', pageName, '菜单代码:', menuCode);
+        showMessage('您没有权限访问此页面', 'error');
+        showPage('dashboard');
+        return;
+    }
+    
     // 隐藏所有页面
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
@@ -163,6 +389,25 @@ function showPage(pageName) {
                 initSecurity();
             }
             break;
+        case 'permissions':
+            if (api.isAdmin()) {
+                // 检查initPermissions函数是否存在
+                if (typeof initPermissions === 'function') {
+                    initPermissions();
+                } else if (typeof window.initPermissions === 'function') {
+                    window.initPermissions();
+                } else {
+                    // 如果函数还未加载，延迟执行
+                    setTimeout(() => {
+                        if (typeof window.initPermissions === 'function') {
+                            window.initPermissions();
+                        } else {
+                            console.error('initPermissions 函数未找到');
+                        }
+                    }, 100);
+                }
+            }
+            break;
         case 'redis':
             if (api.isAdmin()) {
                 loadRedisInfo();
@@ -187,6 +432,25 @@ function showPage(pageName) {
                     }
                 }
                 break;
+        case 'menus':
+            if (api.isSuperAdmin()) {
+                // 检查initMenus函数是否存在
+                if (typeof initMenus === 'function') {
+                    initMenus();
+                } else if (typeof window.initMenus === 'function') {
+                    window.initMenus();
+                } else {
+                    // 如果函数还未加载，延迟执行
+                    setTimeout(() => {
+                        if (typeof window.initMenus === 'function') {
+                            window.initMenus();
+                        } else {
+                            console.error('initMenus函数未找到，请检查menus.js是否已加载');
+                        }
+                    }, 100);
+                }
+            }
+            break;
         case 'test':
             runAllTests();
             break;
@@ -198,34 +462,79 @@ function showPage(pageName) {
  */
 async function loadDashboard() {
     try {
-        // 并行加载统计数据
-        const [usersRes, typesRes, productsRes] = await Promise.all([
-            api.getUsers(1, 1).catch(() => ({ code: 200, data: { total: 0 } })),
-            api.getProductTypes(1, 1).catch(() => ({ code: 200, data: { total: 0 } })),
-            api.getProducts(1, 1).catch(() => ({ code: 200, data: { total: 0 } }))
-        ]);
-
-        // 获取启用商品数量
+        // 使用专门的统计API获取真实数据库统计（不受权限过滤影响）
+        let userCount = 0;
+        let typeCount = 0;
+        let productCount = 0;
         let activeProductsCount = 0;
         let disabledProductsCount = 0;
+        
         try {
-            const activeProductsRes = await api.getProducts(1, 1000, null, true);
-            if (activeProductsRes.code === 200) {
-                const activeProducts = activeProductsRes.data.records || activeProductsRes.data.list || [];
-                activeProductsCount = activeProducts.length;
-            }
-            const allProductsRes = await api.getProducts(1, 1000);
-            if (allProductsRes.code === 200) {
-                const allProducts = allProductsRes.data.records || allProductsRes.data.list || [];
-                disabledProductsCount = allProducts.length - activeProductsCount;
+            const statisticsRes = await api.getStatistics();
+            if (statisticsRes.code === 200 && statisticsRes.data) {
+                userCount = statisticsRes.data.userCount || 0;
+                typeCount = statisticsRes.data.productTypeCount || 0;
+                productCount = statisticsRes.data.productCount || 0;
+                activeProductsCount = statisticsRes.data.activeProductCount || 0;
+                disabledProductsCount = statisticsRes.data.disabledProductCount || 0;
+            } else {
+                // 如果统计API失败，回退到原来的方式
+                console.warn('统计API调用失败，使用备用方式');
+                const [usersRes, typesRes, productsRes] = await Promise.all([
+                    api.getUsers(1, 1).catch(() => ({ code: 200, data: { total: 0 } })),
+                    api.getProductTypes(1, 1).catch(() => ({ code: 200, data: { total: 0 } })),
+                    api.getProducts(1, 1).catch(() => ({ code: 200, data: { total: 0 } }))
+                ]);
+                
+                userCount = usersRes.data?.total || 0;
+                typeCount = typesRes.data?.total || 0;
+                productCount = productsRes.data?.total || 0;
+                
+                // 获取启用商品数量
+                try {
+                    const activeProductsRes = await api.getProducts(1, 1000, null, true);
+                    if (activeProductsRes.code === 200) {
+                        const activeProducts = activeProductsRes.data.records || activeProductsRes.data.list || [];
+                        activeProductsCount = activeProducts.length;
+                    }
+                    const allProductsRes = await api.getProducts(1, 1000);
+                    if (allProductsRes.code === 200) {
+                        const allProducts = allProductsRes.data.records || allProductsRes.data.list || [];
+                        disabledProductsCount = allProducts.length - activeProductsCount;
+                    }
+                } catch (error) {
+                    console.error('获取启用商品失败:', error);
+                }
             }
         } catch (error) {
-            console.error('获取启用商品失败:', error);
+            console.error('获取统计数据失败:', error);
+            // 如果统计API不存在或失败，回退到原来的方式
+            const [usersRes, typesRes, productsRes] = await Promise.all([
+                api.getUsers(1, 1).catch(() => ({ code: 200, data: { total: 0 } })),
+                api.getProductTypes(1, 1).catch(() => ({ code: 200, data: { total: 0 } })),
+                api.getProducts(1, 1).catch(() => ({ code: 200, data: { total: 0 } }))
+            ]);
+            
+            userCount = usersRes.data?.total || 0;
+            typeCount = typesRes.data?.total || 0;
+            productCount = productsRes.data?.total || 0;
+            
+            // 获取启用商品数量
+            try {
+                const activeProductsRes = await api.getProducts(1, 1000, null, true);
+                if (activeProductsRes.code === 200) {
+                    const activeProducts = activeProductsRes.data.records || activeProductsRes.data.list || [];
+                    activeProductsCount = activeProducts.length;
+                }
+                const allProductsRes = await api.getProducts(1, 1000);
+                if (allProductsRes.code === 200) {
+                    const allProducts = allProductsRes.data.records || allProductsRes.data.list || [];
+                    disabledProductsCount = allProducts.length - activeProductsCount;
+                }
+            } catch (error) {
+                console.error('获取启用商品失败:', error);
+            }
         }
-
-        const userCount = usersRes.data?.total || 0;
-        const typeCount = typesRes.data?.total || 0;
-        const productCount = productsRes.data?.total || 0;
 
         // 更新显示
         const userCountEl = document.getElementById('userCount');
@@ -290,10 +599,28 @@ function initCharts(userCount, typeCount, productCount, activeProductsCount, dis
                 type: 'bar',
                 data: [userCount, typeCount, productCount, activeProductsCount],
                 itemStyle: {
-                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: '#2E86AB' },
-                        { offset: 1, color: '#06A77D' }
-                    ])
+                    // 为每个柱子设置不同的颜色
+                    color: function(params) {
+                        const colors = [
+                            new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#2E86AB' },
+                                { offset: 1, color: '#06A77D' }
+                            ]),
+                            new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#F18F01' },
+                                { offset: 1, color: '#C73E1D' }
+                            ]),
+                            new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#6A4C93' },
+                                { offset: 1, color: '#9B59B6' }
+                            ]),
+                            new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#27AE60' },
+                                { offset: 1, color: '#2ECC71' }
+                            ])
+                        ];
+                        return colors[params.dataIndex] || colors[0];
+                    }
                 },
                 label: {
                     show: true,
@@ -557,6 +884,9 @@ function bindEvents() {
         });
     }
     
+    // 初始化头部信息栏
+    initHeaderInfoBar();
+    
     // 绑定统计卡片点击事件（跳转到对应页面）
     document.addEventListener('click', function(e) {
         const statCard = e.target.closest('.stat-card');
@@ -680,6 +1010,355 @@ function renderPagination(total, current, totalPagesOrPageType, pageType) {
     
     html += '</div>';
     pagination.innerHTML = html;
+}
+
+/**
+ * 初始化头部信息栏（时间、日期、温度、在线人数）
+ */
+function initHeaderInfoBar() {
+    // 立即更新一次
+    updateHeaderInfo();
+    
+    // 每秒更新时间
+    setInterval(() => {
+        updateTimeAndDate();
+    }, 1000);
+    
+    // 每30秒更新在线人数
+    setInterval(() => {
+        updateOnlineUserCount();
+    }, 30000);
+    
+    // 每5分钟更新温度（模拟数据）
+    setInterval(() => {
+        updateTemperature();
+    }, 300000);
+    
+    // 立即更新在线人数和温度
+    updateOnlineUserCount();
+    updateTemperature();
+}
+
+/**
+ * 更新头部信息（时间、日期）
+ */
+function updateTimeAndDate() {
+    const now = new Date();
+    
+    // 更新日期
+    const dateEl = document.getElementById('currentDate');
+    if (dateEl) {
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        const weekday = weekdays[now.getDay()];
+        dateEl.textContent = `${year}-${month}-${day} ${weekday}`;
+    }
+    
+    // 更新时间
+    const timeEl = document.getElementById('currentTime');
+    if (timeEl) {
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        timeEl.textContent = `${hours}:${minutes}:${seconds}`;
+    }
+}
+
+/**
+ * 更新在线人数
+ */
+async function updateOnlineUserCount() {
+    const countEl = document.getElementById('onlineUserCount');
+    if (!countEl) return;
+    
+    try {
+        const response = await api.getRedisInfo();
+        if (response.code === 200 && response.data) {
+            const tokenCount = response.data.tokenCount || 0;
+            countEl.textContent = tokenCount;
+            // 添加点击事件，点击后显示在线用户列表
+            if (!countEl.dataset.clickBound) {
+                countEl.style.cursor = 'pointer';
+                countEl.style.textDecoration = 'underline';
+                countEl.title = '点击查看在线用户列表';
+                countEl.addEventListener('click', showOnlineUsersModal);
+                countEl.dataset.clickBound = 'true';
+            }
+        } else {
+            countEl.textContent = '-';
+        }
+    } catch (error) {
+        console.error('获取在线人数失败:', error);
+        countEl.textContent = '-';
+    }
+}
+
+/**
+ * 显示在线用户列表模态框
+ */
+async function showOnlineUsersModal() {
+    // 检查权限
+    if (!api.isAdmin()) {
+        showMessage('您没有权限查看在线用户列表', 'error');
+        return;
+    }
+    
+    // 获取当前登录用户信息
+    let currentUsername = '';
+    try {
+        const userResponse = await api.getCurrentUser();
+        if (userResponse.code === 200 && userResponse.data && userResponse.data.user) {
+            currentUsername = userResponse.data.user.username || '';
+        }
+    } catch (error) {
+        console.error('获取当前用户信息失败:', error);
+    }
+    
+    let currentPage = 1;
+    let pageSize = 15;
+    let searchKeyword = '';
+    
+    // 创建模态框内容
+    const modalContent = `
+        <div class="online-users-container">
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>搜索：</label>
+                    <input type="text" id="onlineUserSearchInput" class="form-control" placeholder="输入用户名或用户ID" style="width: 250px;">
+                </div>
+                <div class="filter-item">
+                    <button type="button" class="btn btn-primary" id="searchOnlineUsersBtn">查询</button>
+                    <button type="button" class="btn btn-secondary" id="resetOnlineUsersBtn">重置</button>
+                </div>
+            </div>
+            <div class="table-container" style="overflow-x: auto;">
+                <table class="data-table" id="onlineUsersTable" style="min-width: 1200px; table-layout: fixed;">
+                    <thead>
+                        <tr>
+                            <th style="width: 120px;">用户名</th>
+                            <th style="width: 150px;">用户ID</th>
+                            <th style="width: 150px;">角色</th>
+                            <th style="width: 180px;">登录时间</th>
+                            <th style="width: 180px;">最后刷新</th>
+                            <th style="width: 180px;">过期时间</th>
+                            <th style="width: 100px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="onlineUsersTableBody">
+                        <tr><td colspan="7" class="loading">加载中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="onlineUsersPagination" class="pagination-toolbar">
+                <!-- 分页控件将在这里动态渲染 -->
+            </div>
+        </div>
+    `;
+    
+    const modal = createModal('在线用户列表', modalContent, '', null, 'xlarge');
+    
+    // 加载在线用户列表
+    async function loadOnlineUsers(page = 1, keyword = '') {
+        currentPage = page;
+        searchKeyword = keyword;
+        try {
+            const response = await api.getOnlineUsers(page, pageSize, keyword);
+            if (response.code === 200 && response.data) {
+                const users = response.data.records || [];
+                const total = response.data.total || 0;
+                const totalPages = response.data.pages || 0;
+                
+                renderOnlineUsersTable(users);
+                if (typeof renderCommonPagination === 'function') {
+                    renderCommonPagination({
+                        total: total,
+                        current: page,
+                        size: pageSize,
+                        pages: totalPages,
+                        records: users
+                    }, 'onlineUsers', document.getElementById('onlineUsersPagination'));
+                }
+            } else {
+                showMessage(response.message || '加载失败', 'error');
+            }
+        } catch (error) {
+            console.error('加载在线用户列表失败:', error);
+            showMessage(error.message || '加载失败', 'error');
+        }
+    }
+    
+    // 渲染在线用户表格
+    function renderOnlineUsersTable(users) {
+        const tbody = document.getElementById('onlineUsersTableBody');
+        if (!tbody) return;
+        
+        if (users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="loading">暂无在线用户</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = users.map(user => {
+            const formatDateTime = (dateTime) => {
+                if (!dateTime) return '-';
+                try {
+                    const date = new Date(dateTime);
+                    return date.toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                } catch (e) {
+                    return dateTime;
+                }
+            };
+            
+            const roles = user.roles || [];
+            const rolesDisplay = roles.length > 0 
+                ? roles.map(r => {
+                    if (r === 'SUPER_ADMIN') return '超级管理员';
+                    if (r === 'ADMIN') return '管理员';
+                    if (r === 'USER') return '普通用户';
+                    return r;
+                }).join(', ')
+                : '无';
+            
+            // 检查当前用户是否有权限踢该用户下线
+            const isSuperAdmin = api.isSuperAdmin();
+            const isAdmin = api.isAdmin();
+            const hasSuperAdminRole = roles.includes('SUPER_ADMIN');
+            const isCurrentUser = currentUsername && user.username && currentUsername === user.username;
+            
+            // 权限规则：
+            // 1. 不能踢自己下线
+            // 2. 管理员不能踢超级管理员
+            // 3. 超级管理员可以踢任何人（包括管理员和普通用户，但不能踢自己）
+            let canKick = false;
+            let kickButtonHtml = '';
+            
+            if (isCurrentUser) {
+                // 不能踢自己下线
+                canKick = false;
+                kickButtonHtml = '<span class="text-muted" style="font-size: 12px;">自己</span>';
+            } else if (isSuperAdmin) {
+                // 超级管理员可以踢任何人（除了自己）
+                canKick = true;
+            } else if (isAdmin) {
+                // 管理员不能踢超级管理员
+                canKick = !hasSuperAdminRole;
+            }
+            
+            if (canKick && !isCurrentUser) {
+                kickButtonHtml = `<button class="btn btn-sm btn-danger" onclick="kickUserOffline('${escapeHtml(user.token)}', '${escapeHtml(user.username || '')}')">踢下线</button>`;
+            } else if (!isCurrentUser) {
+                kickButtonHtml = '<span class="text-muted" style="font-size: 12px;">无权限</span>';
+            }
+            
+            return `
+                <tr>
+                    <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(user.username || '-')}">${escapeHtml(user.username || '-')}</td>
+                    <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(user.userId || '-')}">${escapeHtml(user.userId || '-')}</td>
+                    <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(rolesDisplay)}">${escapeHtml(rolesDisplay)}</td>
+                    <td style="white-space: nowrap;">${formatDateTime(user.createTime)}</td>
+                    <td style="white-space: nowrap;">${formatDateTime(user.lastRefreshTime)}</td>
+                    <td style="white-space: nowrap;">${formatDateTime(user.expireTime)}</td>
+                    <td style="white-space: nowrap;">${kickButtonHtml}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+    
+    // 绑定搜索事件
+    const searchBtn = document.getElementById('searchOnlineUsersBtn');
+    const resetBtn = document.getElementById('resetOnlineUsersBtn');
+    const searchInput = document.getElementById('onlineUserSearchInput');
+    
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            searchKeyword = searchInput ? searchInput.value.trim() : '';
+            currentPage = 1;
+            loadOnlineUsers(1, searchKeyword);
+        });
+    }
+    
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            searchKeyword = '';
+            currentPage = 1;
+            loadOnlineUsers(1, '');
+        });
+    }
+    
+    if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchKeyword = searchInput.value.trim();
+                currentPage = 1;
+                loadOnlineUsers(1, searchKeyword);
+            }
+        });
+    }
+    
+    // 将loadOnlineUsers暴露到全局，供分页控件使用
+    window.loadOnlineUsersInModal = (page) => {
+        loadOnlineUsers(page, searchKeyword);
+    };
+    
+    // 初始化加载
+    loadOnlineUsers(1, '');
+    
+    // 定义踢用户下线函数（在模态框作用域内）
+    window.kickUserOffline = async function(token, username) {
+        if (!await showConfirmModal('确认踢下线', `确定要踢用户 "${username}" 下线吗？`)) {
+            return;
+        }
+        
+        try {
+            const response = await api.kickUserOffline(token);
+            if (response.code === 200) {
+                showMessage('用户已下线', 'success');
+                // 重新加载列表
+                loadOnlineUsers(currentPage, searchKeyword);
+                // 更新在线人数
+                updateOnlineUserCount();
+            } else {
+                showMessage(response.message || '操作失败', 'error');
+            }
+        } catch (error) {
+            console.error('踢用户下线失败:', error);
+            showMessage(error.message || '操作失败', 'error');
+        }
+    };
+}
+
+/**
+ * 更新温度（模拟数据，实际项目中可以接入天气API）
+ */
+function updateTemperature() {
+    const tempEl = document.getElementById('currentTemperature');
+    if (!tempEl) return;
+    
+    // 模拟温度：15-30度之间随机，带小数
+    const baseTemp = 22;
+    const variation = Math.random() * 8 - 4; // -4 到 +4 的随机变化
+    const temperature = (baseTemp + variation).toFixed(1);
+    tempEl.textContent = `${temperature}°C`;
+}
+
+/**
+ * 更新所有头部信息
+ */
+function updateHeaderInfo() {
+    updateTimeAndDate();
+    updateOnlineUserCount();
+    updateTemperature();
 }
 
 // 全局分页切换函数

@@ -9,10 +9,14 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.time.LocalDateTime;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Redis管理控制器
@@ -21,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @RestController
 @RequestMapping("/api/redis")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
 public class RedisController {
 
     @Autowired
@@ -262,6 +266,146 @@ public class RedisController {
         } catch (Exception e) {
             log.error(String.format("获取Redis信息失败: %s", e.getMessage()), e);
             return Result.error(500, "获取失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取在线用户列表（分页）
+     */
+    @GetMapping("/online-users")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public Result<Map<String, Object>> getOnlineUsers(
+            @RequestParam(defaultValue = "1") Integer current,
+            @RequestParam(defaultValue = "15") Integer size,
+            @RequestParam(required = false) String keyword) {
+        try {
+            // 获取所有token keys
+            Set<String> tokenKeys = redisTemplate.keys("token:*");
+            if (tokenKeys == null || tokenKeys.isEmpty()) {
+                Map<String, Object> result = new HashMap<>();
+                result.put("records", new ArrayList<>());
+                result.put("total", 0);
+                result.put("current", current);
+                result.put("size", size);
+                result.put("pages", 0);
+                return Result.success(result);
+            }
+
+            // 获取所有token信息
+            List<Map<String, Object>> onlineUsers = new ArrayList<>();
+            for (String tokenKey : tokenKeys) {
+                String tokenJson = redisTemplate.opsForValue().get(tokenKey);
+                if (tokenJson != null && !tokenJson.isEmpty()) {
+                    try {
+                        // 从tokenKey中提取token值（去掉"token:"前缀）
+                        String token = tokenKey.substring(6);
+                        TokenInfo tokenInfo = tokenService.getTokenInfo(token);
+                        if (tokenInfo != null) {
+                            // 如果有关键词，进行过滤
+                            if (keyword != null && !keyword.trim().isEmpty()) {
+                                String keywordLower = keyword.trim().toLowerCase();
+                                boolean matches = (tokenInfo.getUsername() != null && 
+                                    tokenInfo.getUsername().toLowerCase().contains(keywordLower)) ||
+                                    (tokenInfo.getUserId() != null && 
+                                    tokenInfo.getUserId().toLowerCase().contains(keywordLower));
+                                if (!matches) {
+                                    continue;
+                                }
+                            }
+
+                            Map<String, Object> userInfo = new HashMap<>();
+                            userInfo.put("token", tokenInfo.getToken());
+                            userInfo.put("username", tokenInfo.getUsername());
+                            userInfo.put("userId", tokenInfo.getUserId());
+                            userInfo.put("roles", tokenInfo.getRoles());
+                            userInfo.put("createTime", tokenInfo.getCreateTime());
+                            userInfo.put("lastRefreshTime", tokenInfo.getLastRefreshTime());
+                            userInfo.put("expireTime", tokenInfo.getExpireTime());
+                            onlineUsers.add(userInfo);
+                        }
+                    } catch (Exception e) {
+                        log.warn("解析token信息失败: " + tokenKey, e);
+                    }
+                }
+            }
+
+            // 按最后刷新时间倒序排序
+            onlineUsers.sort((a, b) -> {
+                LocalDateTime timeA = (LocalDateTime) a.get("lastRefreshTime");
+                LocalDateTime timeB = (LocalDateTime) b.get("lastRefreshTime");
+                if (timeA == null && timeB == null) return 0;
+                if (timeA == null) return 1;
+                if (timeB == null) return -1;
+                return timeB.compareTo(timeA);
+            });
+
+            // 分页处理
+            int total = onlineUsers.size();
+            int start = (current - 1) * size;
+            int end = Math.min(start + size, total);
+            List<Map<String, Object>> pagedUsers = start < total 
+                ? onlineUsers.subList(start, end) 
+                : new ArrayList<>();
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("records", pagedUsers);
+            result.put("total", total);
+            result.put("current", current);
+            result.put("size", size);
+            result.put("pages", (int) Math.ceil((double) total / size));
+            return Result.success(result);
+        } catch (Exception e) {
+            log.error("获取在线用户列表失败: " + e.getMessage(), e);
+            return Result.error(500, "获取失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 踢用户下线（删除指定用户的token）
+     */
+    @PostMapping("/online-users/kick")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public Result<String> kickUserOffline(@RequestParam String token) {
+        try {
+            // 获取当前用户角色
+            org.springframework.security.core.Authentication authentication = 
+                SecurityContextHolder.getContext().getAuthentication();
+            boolean isSuperAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+            
+            // 获取被踢用户的token信息
+            TokenInfo tokenInfo = tokenService.getTokenInfo(token);
+            if (tokenInfo == null) {
+                return Result.error(404, "Token不存在或已过期");
+            }
+            
+            // 检查：不能踢自己下线
+            String currentUsername = authentication.getName();
+            if (currentUsername != null && currentUsername.equals(tokenInfo.getUsername())) {
+                return Result.error(403, "不能踢自己下线");
+            }
+            
+            // 检查权限：管理员不能踢超级管理员
+            if (!isSuperAdmin) {
+                // 当前用户是管理员，检查被踢用户的角色
+                List<String> targetUserRoles = tokenInfo.getRoles();
+                if (targetUserRoles != null && targetUserRoles.contains("SUPER_ADMIN")) {
+                    return Result.error(403, "管理员不能踢超级管理员下线");
+                }
+            }
+            // 超级管理员可以踢任何人（包括管理员和普通用户）
+            
+            boolean deleted = tokenService.deleteToken(token);
+            if (deleted) {
+                log.info(String.format("管理员踢用户下线: 操作者=%s, 被踢用户=%s, token=%s", 
+                    authentication.getName(), tokenInfo.getUsername(), token));
+                return Result.success("用户已下线");
+            } else {
+                return Result.error(404, "Token不存在或已过期");
+            }
+        } catch (Exception e) {
+            log.error("踢用户下线失败: " + e.getMessage(), e);
+            return Result.error(500, "操作失败: " + e.getMessage());
         }
     }
 

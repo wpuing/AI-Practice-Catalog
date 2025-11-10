@@ -504,7 +504,7 @@ async function viewLogDetail(logId) {
                         <p><strong>IP地址:</strong> ${log.ipAddress || '-'}</p>
                         <p><strong>用户代理:</strong> ${log.userAgent || '-'}</p>
                         <p><strong>操作时间:</strong> ${log.operationTime ? new Date(log.operationTime).toLocaleString('zh-CN') : '-'}</p>
-                        <p><strong>创建时间:</strong> ${log.createTime ? new Date(log.createTime).toLocaleString('zh-CN') : '-'}</p>
+                        <p><strong>创建时间:</strong> ${log.createDate ? new Date(log.createDate).toLocaleString('zh-CN') : '-'}</p>
                     </div>
                 </div>
             `;

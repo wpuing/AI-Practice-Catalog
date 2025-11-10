@@ -239,7 +239,7 @@ public class OperationLogAspect {
             operationLog.setIpAddress(getClientIpAddress(request));
             operationLog.setUserAgent(request.getHeader("User-Agent"));
             operationLog.setOperationTime(java.time.LocalDateTime.now());
-            operationLog.setCreateTime(java.time.LocalDateTime.now());
+            operationLog.setCreateDate(java.time.LocalDateTime.now());
 
             operationLogService.saveLog(operationLog);
         } catch (Exception e) {

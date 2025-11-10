@@ -174,6 +174,52 @@
     font-size: 14px;
 }
 
+/* 头部信息栏 */
+.header-info-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 8px 20px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    font-size: 13px;
+    border: 1px solid var(--border-color);
+}
+
+.header-info-bar .info-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    position: relative;
+    padding-right: 10px;
+}
+
+.header-info-bar .info-item:last-child {
+    padding-right: 0;
+}
+
+.header-info-bar .info-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -10px;
+    width: 1px;
+    height: 16px;
+    background: var(--border-color);
+}
+
+.header-info-bar .info-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.header-info-bar .info-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    min-width: 50px;
+    text-align: left;
+}
+
 .user-role {
     padding: 4px 8px;
     background: var(--secondary-color);

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.domain.menu.repository.MenuMapper">
+
+    <!-- 根据角色ID查询菜单列表 -->
+    <select id="selectMenusByRoleId" resultType="com.example.demo.domain.menu.entity.Menu">
+        SELECT m.*
+        FROM "menu" m
+        INNER JOIN "role_menu" rm ON m.id = rm.menu_id
+        WHERE rm.role_id = #{roleId}
+          AND m.enabled = TRUE
+        ORDER BY m.sort_order ASC, m.create_date ASC
+    </select>
+
+    <!-- 查询所有启用的菜单（按排序） -->
+    <select id="selectAllEnabledMenus" resultType="com.example.demo.domain.menu.entity.Menu">
+        SELECT *
+        FROM "menu"
+        WHERE enabled = TRUE
+        ORDER BY sort_order ASC, create_date ASC
+    </select>
+
+</mapper>
+

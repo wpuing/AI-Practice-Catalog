@@ -4,12 +4,27 @@
 
 /**
  * 创建模态框
+ * @param {string} title - 标题
+ * @param {string} content - 内容
+ * @param {string} footer - 页脚（可选）
+ * @param {Function} onSubmit - 提交回调（可选）
+ * @param {string} size - 尺寸：'small', 'medium', 'large', 'xlarge'（可选，默认'medium'）
  */
-function createModal(title, content, footer = '') {
+function createModal(title, content, footer = '', onSubmit = null, size = 'medium') {
     const modal = document.createElement('div');
     modal.className = 'modal active';
+    
+    // 根据尺寸设置样式
+    const sizeStyles = {
+        'small': 'max-width: 400px;',
+        'medium': 'max-width: 600px;',
+        'large': 'max-width: 900px;',
+        'xlarge': 'max-width: 1400px; width: 95%;'
+    };
+    const modalStyle = sizeStyles[size] || sizeStyles['medium'];
+    
     modal.innerHTML = `
-        <div class="modal-content">
+        <div class="modal-content" style="${modalStyle}">
             <div class="modal-header">
                 <h3>${title}</h3>
                 <button class="modal-close" onclick="closeModal()">×</button>
@@ -29,6 +44,21 @@ function createModal(title, content, footer = '') {
 
     const container = document.getElementById('modalContainer') || document.body;
     container.appendChild(modal);
+    
+    // 如果有提交回调，绑定到表单
+    if (onSubmit && typeof onSubmit === 'function') {
+        const form = modal.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const result = await onSubmit();
+                if (result === true) {
+                    closeModal();
+                }
+            });
+        }
+    }
+    
     return modal;
 }
 

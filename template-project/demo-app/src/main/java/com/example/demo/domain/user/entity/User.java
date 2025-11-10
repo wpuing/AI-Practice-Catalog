@@ -1,22 +1,17 @@
 package com.example.demo.domain.user.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.example.demo.domain.common.BaseEntity;
 import lombok.Data;
-
-import java.io.Serializable;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("\"user\"")
-public class User implements Serializable {
+public class User extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
-
-    @TableId(type = IdType.ASSIGN_ID)
-    @TableField("id")
-    private String id;
 
     @TableField("username")
     private String username;

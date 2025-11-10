@@ -54,6 +54,9 @@ public class AuthController {
     @Autowired
     private IpUtil ipUtil;
 
+    @Autowired
+    private com.example.demo.application.menu.MenuService menuService;
+
     /**
      * 用户登录
      */
@@ -146,10 +149,14 @@ public class AuthController {
             // 传递浏览器ID和IP以实现单浏览器单用户限制和IP限制
             tokenService.saveToken(token, userDetails.getUsername(), user.getId(), roleCodes, List.of(), browserId, clientIp);
 
+            // 获取用户菜单列表
+            List<com.example.demo.domain.menu.entity.Menu> menus = menuService.getMenusByRoleCodes(roleCodes);
+
             LoginResponse response = new LoginResponse();
             response.setToken(token);
             response.setUsername(userDetails.getUsername());
             response.setRoles(roleCodes);
+            response.setMenus(menus);
             response.setMessage(StatusCode.LOGIN_SUCCESS.getMessage());
 
             log.info(String.format(LogMessages.Auth.LOGIN_SUCCESS, username, token));
@@ -230,12 +237,16 @@ public class AuthController {
         // 从Redis缓存获取用户角色（优先从缓存获取）
         List<String> roleCodes = roleCacheService.getUserRoles(user.getId());
 
+        // 获取用户菜单列表
+        List<com.example.demo.domain.menu.entity.Menu> menus = menuService.getMenusByRoleCodes(roleCodes);
+
         // 清除敏感信息
         user.setPassword(null);
 
         Map<String, Object> data = new HashMap<>();
         data.put("user", user);
         data.put("roles", roleCodes);
+        data.put("menus", menus);
 
         return Result.success(data);
     }

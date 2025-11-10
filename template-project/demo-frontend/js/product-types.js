@@ -4,13 +4,15 @@
 
 let productTypesPage = 1;
 let productTypesPageSize = 15; // 默认15条
+let productTypeSearchKeyword = ''; // 商品类型搜索关键词
 
 /**
  * 加载商品类型列表
  */
-async function loadProductTypes(page = 1) {
+async function loadProductTypes(page = 1, keyword = productTypeSearchKeyword) {
     try {
-        const response = await api.getProductTypes(page, productTypesPageSize);
+        productTypeSearchKeyword = keyword || '';
+        const response = await api.getProductTypes(page, productTypesPageSize, null, keyword);
         if (response.code === 200) {
             const types = response.data.records || response.data.list || [];
             const total = response.data.total || types.length;
@@ -212,6 +214,45 @@ async function deleteProductType(id, typeName) {
  */
 function initProductTypes() {
     loadProductTypes(productTypesPage);
+    bindProductTypeSearchEvents();
+}
+
+/**
+ * 绑定商品类型搜索事件
+ */
+function bindProductTypeSearchEvents() {
+    const searchBtn = document.getElementById('searchProductTypesBtn');
+    const resetBtn = document.getElementById('resetProductTypesBtn');
+    const searchInput = document.getElementById('productTypeSearchInput');
+    
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            const keyword = searchInput ? searchInput.value.trim() : '';
+            productTypesPage = 1;
+            loadProductTypes(1, keyword);
+        });
+    }
+    
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            productTypeSearchKeyword = '';
+            productTypesPage = 1;
+            loadProductTypes(1, '');
+        });
+    }
+    
+    if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const keyword = searchInput.value.trim();
+                productTypesPage = 1;
+                loadProductTypes(1, keyword);
+            }
+        });
+    }
 }
 
 // 导出供全局使用
@@ -219,6 +260,7 @@ window.initProductTypes = initProductTypes;
 window.loadProductTypes = loadProductTypes;
 window.productTypesPage = productTypesPage;
 window.productTypesPageSize = productTypesPageSize;
+window.productTypeSearchKeyword = productTypeSearchKeyword;
 
 // 导出供全局使用
 window.editProductType = editProductType;

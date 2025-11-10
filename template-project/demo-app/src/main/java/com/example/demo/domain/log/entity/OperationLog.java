@@ -1,26 +1,22 @@
 package com.example.demo.domain.log.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.example.demo.domain.common.BaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
  * 操作日志实体类
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("\"operation_log\"")
-public class OperationLog implements Serializable {
+public class OperationLog extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
-
-    @TableId(type = IdType.ASSIGN_ID)
-    @TableField("id")
-    private String id;
 
     @TableField("user_id")
     private String userId;
@@ -57,8 +53,5 @@ public class OperationLog implements Serializable {
 
     @TableField("operation_time")
     private LocalDateTime operationTime;
-
-    @TableField("create_time")
-    private LocalDateTime createTime;
 }
 
