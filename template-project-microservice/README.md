@@ -1,12 +1,132 @@
 # Template Project Microservice
 
-微服务架构模板项目
+企业级微服务架构模板项目
 
-## 说明
+## 📋 项目简介
 
-这是一个微服务架构的模板项目，用于快速搭建微服务系统。
+本项目是一个完整的企业级微服务架构模板，包含后端微服务项目和前端项目，采用领域驱动设计（DDD）思想，提供开箱即用的微服务解决方案。
 
-## 目录结构
+## 🏗️ 项目结构
 
-（待完善）
+```
+template-project-microservice/
+├── template-project-cloud/      # 微服务后端项目
+│   ├── cloud-core/              # 核心模块
+│   │   ├── core-common/         # 通用工具类
+│   │   ├── core-security/       # 安全模块（JWT）
+│   │   ├── core-feign/          # Feign 配置
+│   │   └── core-redis/          # Redis 配置
+│   ├── cloud-auth/              # 认证服务
+│   ├── cloud-gateway/           # API 网关
+│   ├── cloud-dfs/               # 文件服务
+│   ├── cloud-modules/            # 业务模块
+│   │   ├── user-service/        # 用户服务
+│   │   ├── product-service/     # 商品服务
+│   │   └── report-service/      # 报表服务
+│   ├── db/                      # 数据库脚本
+│   └── docs/                    # 项目文档
+│
+└── template-project-frontend/   # 前端项目
+    ├── src/
+    │   ├── api/                 # API 接口
+    │   ├── components/           # 组件
+    │   ├── pages/                # 页面
+    │   ├── services/             # 业务服务
+    │   ├── utils/                # 工具函数
+    │   └── styles/               # 样式文件
+    └── package.json
+```
 
+## 🛠️ 技术栈
+
+### 后端技术栈
+
+- **Java 21** - JDK 版本
+- **Spring Boot 3.2.0** - 核心框架
+- **Spring Cloud 2023.0.0** - 微服务框架
+- **Spring Cloud Alibaba 2022.0.0.0** - 阿里巴巴微服务组件
+- **Nacos** - 服务注册与发现、配置中心
+- **Spring Cloud Gateway** - API 网关
+- **OpenFeign** - 声明式服务调用
+- **PostgreSQL** - 关系型数据库
+- **Redis** - 分布式缓存
+- **RabbitMQ** - 消息队列
+- **XXL-Job** - 分布式任务调度
+- **MyBatis-Plus** - ORM 框架
+- **Druid** - 数据库连接池
+
+### 前端技术栈
+
+- **JavaScript ES6+** - 现代 JavaScript 语法
+- **Vite** - 快速的前端构建工具
+- **原生 JavaScript** - 不依赖任何框架
+- **ESLint + Prettier** - 代码规范工具
+
+## 🚀 快速开始
+
+### 后端项目
+
+详细说明请参考 [template-project-cloud/README.md](./template-project-cloud/README.md)
+
+```bash
+cd template-project-cloud
+mvn clean install
+```
+
+### 前端项目
+
+详细说明请参考 [template-project-frontend/README.md](./template-project-frontend/README.md)
+
+```bash
+cd template-project-frontend
+npm install
+npm run dev
+```
+
+## 📚 文档
+
+- [架构设计文档](./template-project-cloud/docs/architecture.md)
+- [部署文档](./template-project-cloud/docs/deployment.md)
+- [开发文档](./template-project-cloud/docs/development.md)
+- [数据库脚本说明](./template-project-cloud/db/README.md)
+
+## ✨ 核心特性
+
+### 后端特性
+
+- ✅ **微服务架构** - 基于 Spring Cloud Alibaba 的完整微服务解决方案
+- ✅ **DDD 设计** - 领域驱动设计，清晰的业务边界和领域模型
+- ✅ **服务拆分** - 按业务领域拆分服务，低耦合高内聚
+- ✅ **服务注册与发现** - 基于 Nacos 的服务注册与发现
+- ✅ **配置中心** - 基于 Nacos 的配置中心
+- ✅ **API 网关** - Spring Cloud Gateway 统一入口
+- ✅ **服务调用** - OpenFeign 声明式服务调用
+- ✅ **消息队列** - RabbitMQ 异步消息处理
+- ✅ **任务调度** - XXL-Job 分布式任务调度
+- ✅ **缓存** - Redis 分布式缓存
+- ✅ **数据库隔离** - 统一数据库 demo_cloud，表前缀区分服务
+
+### 前端特性
+
+- ✅ **原生 JavaScript** - 不依赖任何框架，纯原生实现
+- ✅ **模块化设计** - ES6 模块化，清晰的代码组织
+- ✅ **路由管理** - 基于 History API 的 SPA 路由
+- ✅ **状态管理** - 轻量级状态管理方案
+- ✅ **HTTP 封装** - 统一的 API 请求封装
+- ✅ **组件化** - 可复用的组件系统
+- ✅ **错误处理** - 全局错误捕获和处理
+- ✅ **日志系统** - 完整的日志记录功能
+
+## 📝 开发规范
+
+- 代码风格遵循项目配置的 ESLint 和 Prettier 规则
+- 提交信息遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范
+- 数据库表名使用服务前缀区分（如 `auth_user`, `user_info`）
+
+## 📄 许可证
+
+MIT License
+
+## 👥 贡献
+
+欢迎提交 Issue 和 Pull Request！
