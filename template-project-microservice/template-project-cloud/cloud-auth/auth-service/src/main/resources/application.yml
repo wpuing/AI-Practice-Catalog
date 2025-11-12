@@ -1,0 +1,76 @@
+spring:
+  application:
+    name: auth-service
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: public
+        group: DEFAULT_GROUP
+      config:
+        server-addr: localhost:8848
+        namespace: public
+        group: DEFAULT_GROUP
+        file-extension: yml
+        shared-configs:
+          - data-id: common-config.yml
+            group: DEFAULT_GROUP
+            refresh: true
+
+server:
+  port: 8081
+
+# 数据库配置（使用 Nacos 配置中心）
+# spring:
+#   datasource:
+#     url: jdbc:postgresql://localhost:5432/demo_cloud
+#     username: postgres
+#     password: postgres
+#     driver-class-name: org.postgresql.Driver
+#     druid:
+#       initial-size: 5
+#       min-idle: 5
+#       max-active: 20
+
+# Redis 配置（使用 Nacos 配置中心）
+# spring:
+#   redis:
+#     host: localhost
+#     port: 6379
+#     password:
+#     database: 0
+#     timeout: 3000ms
+#     lettuce:
+#       pool:
+#         max-active: 8
+#         max-idle: 8
+#         min-idle: 0
+
+# RabbitMQ 配置（使用 Nacos 配置中心）
+# spring:
+#   rabbitmq:
+#     host: localhost
+#     port: 5672
+#     username: guest
+#     password: guest
+#     virtual-host: /
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: assign_id
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# JWT 配置
+jwt:
+  secret: template-project-cloud-secret-key-2024
+  expiration: 86400000
+
