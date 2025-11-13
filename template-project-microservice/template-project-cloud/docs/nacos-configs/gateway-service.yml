@@ -1,0 +1,74 @@
+# Gateway 服务 Nacos 配置
+# Data ID: gateway-service.yml
+# Group: DEFAULT_GROUP
+# 命名空间: demo-cloud (b9282c04-bc19-46a6-a08f-6d303641c7f9)
+# 配置格式: YAML
+
+# 服务端口
+server:
+  port: 8888  # Gateway 端口，避免与 Nacos Console (8080) 冲突
+
+spring:
+  main:
+    web-application-type: reactive  # Gateway 必须使用响应式模式，不能使用 Spring MVC
+
+  # Redis 配置（Gateway 使用响应式 Redis）
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 0
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+
+  # Gateway 路由配置（可选，也可以在 application.yml 中配置）
+  cloud:
+    gateway:
+      routes:
+        # 认证服务路由
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=0
+        # 用户服务路由
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=0
+        # 商品服务路由
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/api/products/**
+          filters:
+            - StripPrefix=0
+        # 报表服务路由
+        - id: report-service
+          uri: lb://report-service
+          predicates:
+            - Path=/api/reports/**
+          filters:
+            - StripPrefix=0
+        # 文件服务路由
+        - id: dfs-service
+          uri: lb://dfs-service
+          predicates:
+            - Path=/api/dfs/**
+          filters:
+            - StripPrefix=0
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.example.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+

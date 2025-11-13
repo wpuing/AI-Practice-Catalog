@@ -11,6 +11,7 @@ class Router {
     this.currentRoute = null;
     this.beforeEachHooks = [];
     this.afterEachHooks = [];
+    this.initialized = false;
     this.init();
   }
 
@@ -35,8 +36,16 @@ class Router {
       }
     });
 
-    // 初始路由处理
-    this.handleRouteChange();
+    this.initialized = true;
+  }
+
+  /**
+   * 启动路由（在所有路由注册完成后调用）
+   */
+  start() {
+    if (this.initialized) {
+      this.handleRouteChange();
+    }
   }
 
   /**
@@ -58,8 +67,18 @@ class Router {
    */
   pathToRegex(path) {
     const keys = [];
-    const pattern = path
-      .replace(/\//g, '\\/')
+    // 特殊处理根路径
+    if (path === '/') {
+      return {
+        regex: /^\/$/,
+        keys
+      };
+    }
+    
+    // 转义特殊字符，但保留 / 用于路径匹配
+    let pattern = path
+      .replace(/[.+?^${}()|[\]\\]/g, '\\$&') // 转义特殊字符
+      .replace(/\//g, '\\/') // 转义斜杠
       .replace(/:(\w+)/g, (_, key) => {
         keys.push(key);
         return '([^/]+)';
@@ -94,10 +113,11 @@ class Router {
    */
   async handleRouteChange() {
     const path = window.location.pathname;
+    logger.debug('Handling route change', { path, routes: this.routes.map(r => r.path) });
     const match = this.matchRoute(path);
 
     if (!match) {
-      logger.warn('Route not found', { path });
+      logger.warn('Route not found', { path, availableRoutes: this.routes.map(r => r.path) });
       this.renderNotFound();
       return;
     }

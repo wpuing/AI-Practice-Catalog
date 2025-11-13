@@ -4,20 +4,21 @@ import cn.hutool.core.util.IdUtil;
 
 /**
  * ID 工具类
+ * 注意：重命名为 CoreIdUtil 避免与 Hutool 的 IdUtil 冲突
  */
-public class IdUtil {
+public class CoreIdUtil {
     /**
      * 生成32位随机ID（小写字母和数字）
      */
     public static String generateId() {
-        return cn.hutool.core.util.IdUtil.fastSimpleUUID().replace("-", "");
+        return IdUtil.fastSimpleUUID().replace("-", "");
     }
 
     /**
      * 生成雪花算法ID
      */
     public static Long generateSnowflakeId() {
-        return cn.hutool.core.util.IdUtil.getSnowflake().nextId();
+        return IdUtil.getSnowflake().nextId();
     }
 
     /**
@@ -34,4 +35,3 @@ public class IdUtil {
         return java.util.UUID.randomUUID().toString().replace("-", "");
     }
 }
-

@@ -19,6 +19,7 @@ export function createMainLayout(content) {
             <h1>Template Project</h1>
           </div>
           <nav class="header-nav">
+            <a href="${ROUTE_CONFIG.HOME}" data-router class="nav-link">首页</a>
             <a href="${ROUTE_CONFIG.DASHBOARD}" data-router class="nav-link">仪表盘</a>
             <a href="${ROUTE_CONFIG.USER_MANAGEMENT}" data-router class="nav-link">用户管理</a>
             <a href="${ROUTE_CONFIG.PRODUCT_MANAGEMENT}" data-router class="nav-link">商品管理</a>

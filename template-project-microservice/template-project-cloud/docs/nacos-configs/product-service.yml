@@ -1,0 +1,67 @@
+# 商品服务 Nacos 配置
+# Data ID: product-service.yml
+# Group: DEFAULT_GROUP
+# 命名空间: demo-cloud (b9282c04-bc19-46a6-a08f-6d303641c7f9)
+# 配置格式: YAML
+
+# 服务端口
+server:
+  port: 8083
+
+spring:
+  # 数据库配置
+  datasource:
+    url: jdbc:postgresql://localhost:5432/demo_cloud
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
+      test-on-borrow: false
+      test-on-return: false
+      test-while-idle: true
+      validation-query: SELECT 1
+
+  # Redis 配置
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 0
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+
+  # RabbitMQ 配置
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+    publisher-confirms: true
+    publisher-returns: true
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: assign_id
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.example.product: DEBUG
+

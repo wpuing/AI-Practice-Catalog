@@ -1,38 +1,9 @@
+# Application 配置 - 显式导入 Nacos 配置
 spring:
-  application:
-    name: user-service
-  profiles:
-    active: dev
-  cloud:
-    nacos:
-      discovery:
-        server-addr: localhost:8848
-        namespace: public
-        group: DEFAULT_GROUP
-      config:
-        server-addr: localhost:8848
-        namespace: public
-        group: DEFAULT_GROUP
-        file-extension: yml
+  config:
+    import: nacos:user-service.yml  # Spring Cloud Alibaba 2022.x 需要显式导入配置（必须存在）
 
+# 服务端口（最小默认值，实际配置从 Nacos 读取）
 server:
   port: 8082
-
-# 数据库配置（使用 Nacos 配置中心）
-# spring:
-#   datasource:
-#     url: jdbc:postgresql://localhost:5432/demo_cloud
-#     username: postgres
-#     password: postgres
-
-# MyBatis-Plus 配置
-mybatis-plus:
-  configuration:
-    map-underscore-to-camel-case: true
-  global-config:
-    db-config:
-      id-type: assign_id
-      logic-delete-field: deleted
-      logic-delete-value: 1
-      logic-not-delete-value: 0
 

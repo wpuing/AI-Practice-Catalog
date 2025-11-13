@@ -1,61 +1,11 @@
+# Application 配置 - 显式导入 Nacos 配置
 spring:
-  application:
-    name: gateway-service
-  profiles:
-    active: dev
-  cloud:
-    nacos:
-      discovery:
-        server-addr: localhost:8848
-        namespace: public
-        group: DEFAULT_GROUP
-      config:
-        server-addr: localhost:8848
-        namespace: public
-        group: DEFAULT_GROUP
-        file-extension: yml
-    gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-      routes:
-        # 认证服务路由
-        - id: auth-service
-          uri: lb://auth-service
-          predicates:
-            - Path=/api/auth/**
-          filters:
-            - StripPrefix=0
-        # 用户服务路由
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/api/users/**
-          filters:
-            - StripPrefix=0
-        # 商品服务路由
-        - id: product-service
-          uri: lb://product-service
-          predicates:
-            - Path=/api/products/**
-          filters:
-            - StripPrefix=0
-        # 报表服务路由
-        - id: report-service
-          uri: lb://report-service
-          predicates:
-            - Path=/api/reports/**
-          filters:
-            - StripPrefix=0
-        # 文件服务路由
-        - id: dfs-service
-          uri: lb://dfs-service
-          predicates:
-            - Path=/api/dfs/**
-          filters:
-            - StripPrefix=0
+  main:
+    web-application-type: reactive  # Gateway 必须使用响应式模式，不能使用 Spring MVC
+  config:
+    import: nacos:gateway-service.yml  # Spring Cloud Alibaba 2022.x 需要显式导入配置（必须存在）
 
+# 服务端口（最小默认值，实际配置从 Nacos 读取）
 server:
-  port: 8080
+  port: 8888  # Gateway 端口，避免与 Nacos Console (8080) 冲突
 

@@ -13,6 +13,7 @@ import { createMainLayout, initMainLayout } from '@layouts/MainLayout.js';
 
 // 导入页面组件
 import LoginPage from '@pages/Login.js';
+import HomePage from '@pages/Home.js';
 import DashboardPage from '@pages/Dashboard.js';
 import NotFoundPage from '@pages/NotFound.js';
 
@@ -30,6 +31,10 @@ store.setState({
 
 // 注册路由
 router.addRoute(ROUTE_CONFIG.LOGIN, LoginPage, { requiresAuth: false });
+router.addRoute(ROUTE_CONFIG.HOME, async () => {
+  const html = await HomePage();
+  return createMainLayout(html);
+}, { requiresAuth: false });
 router.addRoute(ROUTE_CONFIG.DASHBOARD, async () => {
   const html = await DashboardPage();
   return createMainLayout(html);
@@ -39,6 +44,7 @@ router.addRoute(ROUTE_CONFIG.NOT_FOUND, NotFoundPage);
 // 路由守卫：检查认证状态
 router.beforeEach(async (to, from) => {
   const isAuthenticated = authService.isAuthenticated();
+  // requiresAuth 为 false 时不需要认证，其他情况都需要认证
   const requiresAuth = to.meta?.requiresAuth !== false;
 
   if (requiresAuth && !isAuthenticated) {
@@ -47,6 +53,7 @@ router.beforeEach(async (to, from) => {
     return false;
   }
 
+  // 如果已登录，访问登录页则跳转到仪表盘
   if (to.path === ROUTE_CONFIG.LOGIN && isAuthenticated) {
     router.replace(ROUTE_CONFIG.DASHBOARD);
     return false;
@@ -75,6 +82,9 @@ window.addEventListener('auth:logout', () => {
 
 // 初始化主布局
 initMainLayout();
+
+// 启动路由（在所有路由注册完成后）
+router.start();
 
 // 应用启动完成
 logger.info('Application started successfully');

@@ -390,12 +390,12 @@ services:
 
 ```bash
 # 测试登录接口
-curl -X POST http://localhost:8080/api/auth/login \
+curl -X POST http://localhost:8888/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"123456"}'
 
 # 测试用户接口（需要 Token）
-curl -X GET http://localhost:8080/api/users/info \
+curl -X GET http://localhost:8888/api/users/info \
   -H "Authorization: Bearer {token}"
 ```
 

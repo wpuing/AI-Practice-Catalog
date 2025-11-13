@@ -19,7 +19,7 @@ export default defineConfig({
     open: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:8888',  // Gateway 端口已改为 8888
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }
@@ -32,6 +32,8 @@ export default defineConfig({
       '@api': resolve(__dirname, 'src/api'),
       '@components': resolve(__dirname, 'src/components'),
       '@pages': resolve(__dirname, 'src/pages'),
+      '@services': resolve(__dirname, 'src/services'),
+      '@layouts': resolve(__dirname, 'src/layouts'),
       '@styles': resolve(__dirname, 'src/styles'),
       '@config': resolve(__dirname, 'src/config')
     }

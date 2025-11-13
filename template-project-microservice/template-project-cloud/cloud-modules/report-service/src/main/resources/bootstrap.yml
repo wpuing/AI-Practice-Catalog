@@ -1,7 +1,7 @@
 # Bootstrap 配置 - 在 application.yml 之前加载，用于连接 Nacos
 spring:
   application:
-    name: auth-service
+    name: report-service
   profiles:
     active: dev
   cloud:
@@ -19,8 +19,4 @@ spring:
         username: nacos
         password: nacos
         file-extension: yml
-        shared-configs:
-          - data-id: common-config.yml
-            group: DEFAULT_GROUP
-            refresh: true
 

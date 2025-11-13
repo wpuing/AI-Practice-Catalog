@@ -1,45 +1,9 @@
+# Application 配置 - 显式导入 Nacos 配置
 spring:
-  application:
-    name: report-service
-  profiles:
-    active: dev
-  cloud:
-    nacos:
-      discovery:
-        server-addr: localhost:8848
-        namespace: public
-        group: DEFAULT_GROUP
-      config:
-        server-addr: localhost:8848
-        namespace: public
-        group: DEFAULT_GROUP
-        file-extension: yml
+  config:
+    import: nacos:report-service.yml  # Spring Cloud Alibaba 2022.x 需要显式导入配置（必须存在）
 
+# 服务端口（最小默认值，实际配置从 Nacos 读取）
 server:
   port: 8084
-
-# MyBatis-Plus 配置
-mybatis-plus:
-  configuration:
-    map-underscore-to-camel-case: true
-  global-config:
-    db-config:
-      id-type: assign_id
-      logic-delete-field: deleted
-      logic-delete-value: 1
-      logic-not-delete-value: 0
-
-# XXL-Job 配置
-xxl:
-  job:
-    admin:
-      addresses: http://localhost:8080/xxl-job-admin
-    executor:
-      appname: report-service
-      address:
-      ip:
-      port: 9999
-      logpath: /data/applogs/xxl-job/jobhandler
-      logretentiondays: 30
-    accessToken:
 

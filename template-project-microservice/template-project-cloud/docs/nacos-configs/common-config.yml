@@ -1,0 +1,33 @@
+# 公共配置（所有服务共享）
+# Data ID: common-config.yml
+# Group: DEFAULT_GROUP
+# 命名空间: demo-cloud (b9282c04-bc19-46a6-a08f-6d303641c7f9)
+# 配置格式: YAML
+# 注意：此配置会被 auth-service 自动加载（通过 shared-configs 配置）
+
+# 公共日志配置
+logging:
+  level:
+    root: INFO
+    org.springframework: WARN
+    com.alibaba.nacos: WARN
+
+# 公共数据库配置（如果需要统一管理）
+# spring:
+#   datasource:
+#     druid:
+#       initial-size: 5
+#       min-idle: 5
+#       max-active: 20
+#       max-wait: 60000
+
+# 公共 Redis 配置（如果需要统一管理）
+# spring:
+#   redis:
+#     timeout: 3000ms
+#     lettuce:
+#       pool:
+#         max-active: 8
+#         max-idle: 8
+#         min-idle: 0
+
