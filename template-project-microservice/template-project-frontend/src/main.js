@@ -3,6 +3,7 @@
  */
 
 import './styles/main.css';
+import './styles/login/index.css';
 import router from '@utils/router.js';
 import store from '@utils/store.js';
 import errorHandler from '@utils/error-handler.js';
@@ -23,11 +24,21 @@ errorHandler.init();
 // 初始化日志
 logger.info('Application starting...');
 
-// 初始化状态管理
-store.setState({
-  user: authService.getCurrentUser(),
-  isAuthenticated: authService.isAuthenticated()
-});
+// 初始化状态管理（安全初始化，避免认证检查导致的问题）
+try {
+  const user = authService.getCurrentUser();
+  const isAuthenticated = authService.isAuthenticated();
+  store.setState({
+    user: user || null,
+    isAuthenticated: isAuthenticated || false
+  });
+} catch (error) {
+  logger.warn('Failed to initialize auth state', error);
+  store.setState({
+    user: null,
+    isAuthenticated: false
+  });
+}
 
 // 注册路由
 router.addRoute(ROUTE_CONFIG.LOGIN, LoginPage, { requiresAuth: false });
@@ -44,18 +55,24 @@ router.addRoute(ROUTE_CONFIG.NOT_FOUND, NotFoundPage);
 // 路由守卫：检查认证状态
 router.beforeEach(async (to, from) => {
   const isAuthenticated = authService.isAuthenticated();
-  // requiresAuth 为 false 时不需要认证，其他情况都需要认证
-  const requiresAuth = to.meta?.requiresAuth !== false;
+  
+  // 如果已登录，访问登录页则跳转到仪表盘
+  if (to.path === ROUTE_CONFIG.LOGIN && isAuthenticated) {
+    router.replace(ROUTE_CONFIG.DASHBOARD);
+    return false;
+  }
 
+  // 如果未登录，访问需要认证的页面则跳转到登录页
+  const requiresAuth = to.meta?.requiresAuth !== false;
   if (requiresAuth && !isAuthenticated) {
     logger.warn('Unauthorized access attempt', { path: to.path });
     router.replace(ROUTE_CONFIG.LOGIN);
     return false;
   }
 
-  // 如果已登录，访问登录页则跳转到仪表盘
-  if (to.path === ROUTE_CONFIG.LOGIN && isAuthenticated) {
-    router.replace(ROUTE_CONFIG.DASHBOARD);
+  // 如果访问首页且未登录，跳转到登录页
+  if (to.path === ROUTE_CONFIG.HOME && !isAuthenticated) {
+    router.replace(ROUTE_CONFIG.LOGIN);
     return false;
   }
 
@@ -85,6 +102,11 @@ initMainLayout();
 
 // 启动路由（在所有路由注册完成后）
 router.start();
+
+// 如果当前路径是首页且未登录，跳转到登录页
+if (window.location.pathname === ROUTE_CONFIG.HOME && !authService.isAuthenticated()) {
+  router.replace(ROUTE_CONFIG.LOGIN);
+}
 
 // 应用启动完成
 logger.info('Application started successfully');

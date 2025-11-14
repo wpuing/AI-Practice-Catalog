@@ -1,0 +1,45 @@
+/**
+ * 页面底部版权信息样式
+ */
+
+.page-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 20px;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.page-footer .page-copyright {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  letter-spacing: 0.3px;
+  line-height: 1.6;
+  pointer-events: auto;
+}
+
+.page-footer .page-copyright .author-name {
+  color: rgba(102, 126, 234, 0.9);
+  font-weight: 500;
+}
+
+.page-footer .page-copyright .footer-email {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.page-footer .page-copyright .email-link {
+  color: rgba(102, 126, 234, 0.8);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  pointer-events: auto;
+}
+
+.page-footer .page-copyright .email-link:hover {
+  color: rgba(102, 126, 234, 1);
+  text-decoration: underline;
+}
+

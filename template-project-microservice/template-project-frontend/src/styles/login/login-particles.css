@@ -1,0 +1,337 @@
+/**
+ * 颗粒状粒子飞过效果样式
+ */
+
+.login-shooting-stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.particle-trail {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(102, 126, 234, 0.8) 50%, transparent 100%);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 4px rgba(255, 255, 255, 0.9),
+    0 0 8px rgba(102, 126, 234, 0.7);
+}
+
+.particle-trail.trail-1 .particle:nth-child(1) {
+  animation: particle1-1 2s linear infinite;
+  animation-delay: 0s;
+}
+
+.particle-trail.trail-1 .particle:nth-child(2) {
+  animation: particle1-2 2s linear infinite;
+  animation-delay: 0.05s;
+}
+
+.particle-trail.trail-1 .particle:nth-child(3) {
+  animation: particle1-3 2s linear infinite;
+  animation-delay: 0.1s;
+}
+
+.particle-trail.trail-1 .particle:nth-child(4) {
+  animation: particle1-4 2s linear infinite;
+  animation-delay: 0.15s;
+}
+
+.particle-trail.trail-1 .particle:nth-child(5) {
+  animation: particle1-5 2s linear infinite;
+  animation-delay: 0.2s;
+}
+
+.particle-trail.trail-1 .particle:nth-child(6) {
+  animation: particle1-6 2s linear infinite;
+  animation-delay: 0.25s;
+}
+
+.particle-trail.trail-1 .particle:nth-child(7) {
+  animation: particle1-7 2s linear infinite;
+  animation-delay: 0.3s;
+}
+
+.particle-trail.trail-1 .particle:nth-child(8) {
+  animation: particle1-8 2s linear infinite;
+  animation-delay: 0.35s;
+}
+
+.particle-trail.trail-2 .particle {
+  background: radial-gradient(circle, rgba(102, 126, 234, 1) 0%, rgba(118, 75, 162, 0.8) 50%, transparent 100%);
+  box-shadow: 
+    0 0 4px rgba(102, 126, 234, 0.9),
+    0 0 8px rgba(118, 75, 162, 0.7);
+}
+
+.particle-trail.trail-2 .particle:nth-child(1) {
+  animation: particle2-1 2.5s linear infinite;
+  animation-delay: 0.8s;
+}
+
+.particle-trail.trail-2 .particle:nth-child(2) {
+  animation: particle2-2 2.5s linear infinite;
+  animation-delay: 0.85s;
+}
+
+.particle-trail.trail-2 .particle:nth-child(3) {
+  animation: particle2-3 2.5s linear infinite;
+  animation-delay: 0.9s;
+}
+
+.particle-trail.trail-2 .particle:nth-child(4) {
+  animation: particle2-4 2.5s linear infinite;
+  animation-delay: 0.95s;
+}
+
+.particle-trail.trail-2 .particle:nth-child(5) {
+  animation: particle2-5 2.5s linear infinite;
+  animation-delay: 1s;
+}
+
+.particle-trail.trail-2 .particle:nth-child(6) {
+  animation: particle2-6 2.5s linear infinite;
+  animation-delay: 1.05s;
+}
+
+.particle-trail.trail-2 .particle:nth-child(7) {
+  animation: particle2-7 2.5s linear infinite;
+  animation-delay: 1.1s;
+}
+
+.particle-trail.trail-2 .particle:nth-child(8) {
+  animation: particle2-8 2.5s linear infinite;
+  animation-delay: 1.15s;
+}
+
+.particle-trail.trail-3 .particle {
+  background: radial-gradient(circle, rgba(79, 172, 254, 1) 0%, rgba(102, 126, 234, 0.8) 50%, transparent 100%);
+  box-shadow: 
+    0 0 4px rgba(79, 172, 254, 0.9),
+    0 0 8px rgba(102, 126, 234, 0.7);
+}
+
+.particle-trail.trail-3 .particle:nth-child(1) {
+  animation: particle3-1 2.2s linear infinite;
+  animation-delay: 1.5s;
+}
+
+.particle-trail.trail-3 .particle:nth-child(2) {
+  animation: particle3-2 2.2s linear infinite;
+  animation-delay: 1.55s;
+}
+
+.particle-trail.trail-3 .particle:nth-child(3) {
+  animation: particle3-3 2.2s linear infinite;
+  animation-delay: 1.6s;
+}
+
+.particle-trail.trail-3 .particle:nth-child(4) {
+  animation: particle3-4 2.2s linear infinite;
+  animation-delay: 1.65s;
+}
+
+.particle-trail.trail-3 .particle:nth-child(5) {
+  animation: particle3-5 2.2s linear infinite;
+  animation-delay: 1.7s;
+}
+
+.particle-trail.trail-3 .particle:nth-child(6) {
+  animation: particle3-6 2.2s linear infinite;
+  animation-delay: 1.75s;
+}
+
+.particle-trail.trail-3 .particle:nth-child(7) {
+  animation: particle3-7 2.2s linear infinite;
+  animation-delay: 1.8s;
+}
+
+.particle-trail.trail-3 .particle:nth-child(8) {
+  animation: particle3-8 2.2s linear infinite;
+  animation-delay: 1.85s;
+}
+
+/* 轨迹1 - 左上到右下 */
+@keyframes particle1-1 {
+  0% { transform: translate(-100px, -100px) rotate(45deg) translateX(0); opacity: 0; }
+  1% { opacity: 1; }
+  99% { opacity: 1; }
+  100% { transform: translate(calc(100vw + 100px), calc(100vh + 100px)) rotate(45deg) translateX(0); opacity: 0; }
+}
+
+@keyframes particle1-2 {
+  0% { transform: translate(-100px, -100px) rotate(45deg) translateX(-8px); opacity: 0; }
+  1% { opacity: 0.9; }
+  99% { opacity: 0.9; }
+  100% { transform: translate(calc(100vw + 100px), calc(100vh + 100px)) rotate(45deg) translateX(-8px); opacity: 0; }
+}
+
+@keyframes particle1-3 {
+  0% { transform: translate(-100px, -100px) rotate(45deg) translateX(-16px); opacity: 0; }
+  1% { opacity: 0.8; }
+  99% { opacity: 0.8; }
+  100% { transform: translate(calc(100vw + 100px), calc(100vh + 100px)) rotate(45deg) translateX(-16px); opacity: 0; }
+}
+
+@keyframes particle1-4 {
+  0% { transform: translate(-100px, -100px) rotate(45deg) translateX(-24px); opacity: 0; }
+  1% { opacity: 0.7; }
+  99% { opacity: 0.7; }
+  100% { transform: translate(calc(100vw + 100px), calc(100vh + 100px)) rotate(45deg) translateX(-24px); opacity: 0; }
+}
+
+@keyframes particle1-5 {
+  0% { transform: translate(-100px, -100px) rotate(45deg) translateX(-32px); opacity: 0; }
+  1% { opacity: 0.6; }
+  99% { opacity: 0.6; }
+  100% { transform: translate(calc(100vw + 100px), calc(100vh + 100px)) rotate(45deg) translateX(-32px); opacity: 0; }
+}
+
+@keyframes particle1-6 {
+  0% { transform: translate(-100px, -100px) rotate(45deg) translateX(-40px); opacity: 0; }
+  1% { opacity: 0.5; }
+  99% { opacity: 0.5; }
+  100% { transform: translate(calc(100vw + 100px), calc(100vh + 100px)) rotate(45deg) translateX(-40px); opacity: 0; }
+}
+
+@keyframes particle1-7 {
+  0% { transform: translate(-100px, -100px) rotate(45deg) translateX(-48px); opacity: 0; }
+  1% { opacity: 0.4; }
+  99% { opacity: 0.4; }
+  100% { transform: translate(calc(100vw + 100px), calc(100vh + 100px)) rotate(45deg) translateX(-48px); opacity: 0; }
+}
+
+@keyframes particle1-8 {
+  0% { transform: translate(-100px, -100px) rotate(45deg) translateX(-56px); opacity: 0; }
+  1% { opacity: 0.3; }
+  99% { opacity: 0.3; }
+  100% { transform: translate(calc(100vw + 100px), calc(100vh + 100px)) rotate(45deg) translateX(-56px); opacity: 0; }
+}
+
+/* 轨迹2 - 右上到左下 */
+@keyframes particle2-1 {
+  0% { transform: translate(calc(100vw + 100px), -100px) rotate(-45deg) translateX(0); opacity: 0; }
+  1% { opacity: 1; }
+  99% { opacity: 1; }
+  100% { transform: translate(-100px, calc(100vh + 100px)) rotate(-45deg) translateX(0); opacity: 0; }
+}
+
+@keyframes particle2-2 {
+  0% { transform: translate(calc(100vw + 100px), -100px) rotate(-45deg) translateX(-8px); opacity: 0; }
+  1% { opacity: 0.9; }
+  99% { opacity: 0.9; }
+  100% { transform: translate(-100px, calc(100vh + 100px)) rotate(-45deg) translateX(-8px); opacity: 0; }
+}
+
+@keyframes particle2-3 {
+  0% { transform: translate(calc(100vw + 100px), -100px) rotate(-45deg) translateX(-16px); opacity: 0; }
+  1% { opacity: 0.8; }
+  99% { opacity: 0.8; }
+  100% { transform: translate(-100px, calc(100vh + 100px)) rotate(-45deg) translateX(-16px); opacity: 0; }
+}
+
+@keyframes particle2-4 {
+  0% { transform: translate(calc(100vw + 100px), -100px) rotate(-45deg) translateX(-24px); opacity: 0; }
+  1% { opacity: 0.7; }
+  99% { opacity: 0.7; }
+  100% { transform: translate(-100px, calc(100vh + 100px)) rotate(-45deg) translateX(-24px); opacity: 0; }
+}
+
+@keyframes particle2-5 {
+  0% { transform: translate(calc(100vw + 100px), -100px) rotate(-45deg) translateX(-32px); opacity: 0; }
+  1% { opacity: 0.6; }
+  99% { opacity: 0.6; }
+  100% { transform: translate(-100px, calc(100vh + 100px)) rotate(-45deg) translateX(-32px); opacity: 0; }
+}
+
+@keyframes particle2-6 {
+  0% { transform: translate(calc(100vw + 100px), -100px) rotate(-45deg) translateX(-40px); opacity: 0; }
+  1% { opacity: 0.5; }
+  99% { opacity: 0.5; }
+  100% { transform: translate(-100px, calc(100vh + 100px)) rotate(-45deg) translateX(-40px); opacity: 0; }
+}
+
+@keyframes particle2-7 {
+  0% { transform: translate(calc(100vw + 100px), -100px) rotate(-45deg) translateX(-48px); opacity: 0; }
+  1% { opacity: 0.4; }
+  99% { opacity: 0.4; }
+  100% { transform: translate(-100px, calc(100vh + 100px)) rotate(-45deg) translateX(-48px); opacity: 0; }
+}
+
+@keyframes particle2-8 {
+  0% { transform: translate(calc(100vw + 100px), -100px) rotate(-45deg) translateX(-56px); opacity: 0; }
+  1% { opacity: 0.3; }
+  99% { opacity: 0.3; }
+  100% { transform: translate(-100px, calc(100vh + 100px)) rotate(-45deg) translateX(-56px); opacity: 0; }
+}
+
+/* 轨迹3 - 中间斜向 */
+@keyframes particle3-1 {
+  0% { transform: translate(30vw, -100px) rotate(30deg) translateX(0); opacity: 0; }
+  1% { opacity: 1; }
+  99% { opacity: 1; }
+  100% { transform: translate(calc(30vw + 300px), calc(100vh + 100px)) rotate(30deg) translateX(0); opacity: 0; }
+}
+
+@keyframes particle3-2 {
+  0% { transform: translate(30vw, -100px) rotate(30deg) translateX(-8px); opacity: 0; }
+  1% { opacity: 0.9; }
+  99% { opacity: 0.9; }
+  100% { transform: translate(calc(30vw + 300px), calc(100vh + 100px)) rotate(30deg) translateX(-8px); opacity: 0; }
+}
+
+@keyframes particle3-3 {
+  0% { transform: translate(30vw, -100px) rotate(30deg) translateX(-16px); opacity: 0; }
+  1% { opacity: 0.8; }
+  99% { opacity: 0.8; }
+  100% { transform: translate(calc(30vw + 300px), calc(100vh + 100px)) rotate(30deg) translateX(-16px); opacity: 0; }
+}
+
+@keyframes particle3-4 {
+  0% { transform: translate(30vw, -100px) rotate(30deg) translateX(-24px); opacity: 0; }
+  1% { opacity: 0.7; }
+  99% { opacity: 0.7; }
+  100% { transform: translate(calc(30vw + 300px), calc(100vh + 100px)) rotate(30deg) translateX(-24px); opacity: 0; }
+}
+
+@keyframes particle3-5 {
+  0% { transform: translate(30vw, -100px) rotate(30deg) translateX(-32px); opacity: 0; }
+  1% { opacity: 0.6; }
+  99% { opacity: 0.6; }
+  100% { transform: translate(calc(30vw + 300px), calc(100vh + 100px)) rotate(30deg) translateX(-32px); opacity: 0; }
+}
+
+@keyframes particle3-6 {
+  0% { transform: translate(30vw, -100px) rotate(30deg) translateX(-40px); opacity: 0; }
+  1% { opacity: 0.5; }
+  99% { opacity: 0.5; }
+  100% { transform: translate(calc(30vw + 300px), calc(100vh + 100px)) rotate(30deg) translateX(-40px); opacity: 0; }
+}
+
+@keyframes particle3-7 {
+  0% { transform: translate(30vw, -100px) rotate(30deg) translateX(-48px); opacity: 0; }
+  1% { opacity: 0.4; }
+  99% { opacity: 0.4; }
+  100% { transform: translate(calc(30vw + 300px), calc(100vh + 100px)) rotate(30deg) translateX(-48px); opacity: 0; }
+}
+
+@keyframes particle3-8 {
+  0% { transform: translate(30vw, -100px) rotate(30deg) translateX(-56px); opacity: 0; }
+  1% { opacity: 0.3; }
+  99% { opacity: 0.3; }
+  100% { transform: translate(calc(30vw + 300px), calc(100vh + 100px)) rotate(30deg) translateX(-56px); opacity: 0; }
+}
+

@@ -1,0 +1,254 @@
+/**
+ * 3D立方体样式
+ */
+
+/* 立方体框架 */
+.cube-frame-3d {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  left: 50%;
+  top: 50%;
+  margin-left: -130px;
+  margin-top: -130px;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  animation: cubeRotate3D 12s linear infinite;
+  transform-origin: center center;
+  z-index: 0;
+}
+
+.cube-frame-face {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  left: 0;
+  top: 0;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: transparent;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  overflow: hidden;
+}
+
+/* 每个面的两条对角虚线 */
+.cube-frame-face::before,
+.cube-frame-face::after {
+  content: '';
+  position: absolute;
+  width: 1px;
+  height: 368px; /* 对角线长度：sqrt(260^2 + 260^2) ≈ 368px */
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.9) 0px,
+    rgba(255, 255, 255, 0.9) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  pointer-events: none;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.6);
+}
+
+.cube-frame-face::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.cube-frame-face::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.cube-frame-front {
+  transform: rotateY(0deg) translateZ(130px);
+}
+
+.cube-frame-back {
+  transform: rotateY(180deg) translateZ(130px);
+}
+
+.cube-frame-right {
+  transform: rotateY(90deg) translateZ(130px);
+}
+
+.cube-frame-left {
+  transform: rotateY(-90deg) translateZ(130px);
+}
+
+.cube-frame-top {
+  transform: rotateX(90deg) translateZ(130px);
+}
+
+.cube-frame-bottom {
+  transform: rotateX(-90deg) translateZ(130px);
+}
+
+/* 3D立方体 */
+.cube-3d {
+  width: 200px;
+  height: 200px;
+  position: absolute;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  animation: cubeRotate3D 12s linear infinite;
+  transform-origin: 50% 50%;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  margin-left: -100px;
+  margin-top: -100px;
+}
+
+@keyframes cubeRotate3D {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  }
+  12.5% {
+    transform: rotateX(45deg) rotateY(22.5deg) rotateZ(0deg);
+  }
+  25% {
+    transform: rotateX(90deg) rotateY(45deg) rotateZ(22.5deg);
+  }
+  37.5% {
+    transform: rotateX(90deg) rotateY(67.5deg) rotateZ(45deg);
+  }
+  50% {
+    transform: rotateX(90deg) rotateY(90deg) rotateZ(67.5deg);
+  }
+  62.5% {
+    transform: rotateX(67.5deg) rotateY(90deg) rotateZ(90deg);
+  }
+  75% {
+    transform: rotateX(45deg) rotateY(67.5deg) rotateZ(90deg);
+  }
+  87.5% {
+    transform: rotateX(22.5deg) rotateY(45deg) rotateZ(90deg);
+  }
+  100% {
+    transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg);
+  }
+}
+
+.cube-face {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  left: 0;
+  top: 0;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  backface-visibility: visible;
+  -webkit-backface-visibility: visible;
+  transform-origin: center center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  box-shadow: 
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.2),
+    0 0 0 0.5px rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+}
+
+/* 前面 - 最亮 */
+.cube-front {
+  transform: rotateY(0deg) translateZ(100px);
+  background: linear-gradient(135deg, 
+    rgba(var(--theme-primary-rgb, 102, 126, 234), 1),
+    rgba(var(--theme-secondary-rgb, 118, 75, 162), 0.9)
+  );
+  border-color: rgba(var(--theme-primary-rgb, 102, 126, 234), 0.6);
+  box-shadow: 
+    0 0 30px rgba(var(--theme-primary-rgb, 102, 126, 234), 0.6),
+    0 0 0 0.5px rgba(255, 255, 255, 0.4);
+}
+
+/* 后面 - 较暗 */
+.cube-back {
+  transform: rotateY(180deg) translateZ(100px);
+  background: linear-gradient(135deg, 
+    rgba(var(--theme-primary-rgb, 102, 126, 234), 0.6),
+    rgba(var(--theme-secondary-rgb, 118, 75, 162), 0.5)
+  );
+  border-color: rgba(var(--theme-primary-rgb, 102, 126, 234), 0.5);
+  box-shadow: 
+    0 0 20px rgba(var(--theme-primary-rgb, 102, 126, 234), 0.4),
+    0 0 0 0.5px rgba(255, 255, 255, 0.3);
+}
+
+/* 右面 - 中等亮度 */
+.cube-right {
+  transform: rotateY(90deg) translateZ(100px);
+  background: linear-gradient(135deg, 
+    rgba(var(--theme-primary-rgb, 102, 126, 234), 0.8),
+    rgba(var(--theme-secondary-rgb, 118, 75, 162), 0.7)
+  );
+  border-color: rgba(var(--theme-primary-rgb, 102, 126, 234), 0.55);
+  box-shadow: 
+    0 0 25px rgba(var(--theme-primary-rgb, 102, 126, 234), 0.5),
+    0 0 0 0.5px rgba(255, 255, 255, 0.35);
+}
+
+/* 左面 - 中等亮度 */
+.cube-left {
+  transform: rotateY(-90deg) translateZ(100px);
+  background: linear-gradient(135deg, 
+    rgba(var(--theme-primary-rgb, 102, 126, 234), 0.8),
+    rgba(var(--theme-secondary-rgb, 118, 75, 162), 0.7)
+  );
+  border-color: rgba(var(--theme-primary-rgb, 102, 126, 234), 0.55);
+  box-shadow: 
+    0 0 25px rgba(var(--theme-primary-rgb, 102, 126, 234), 0.5),
+    0 0 0 0.5px rgba(255, 255, 255, 0.35);
+}
+
+/* 顶面 - 较亮 */
+.cube-top {
+  transform: rotateX(90deg) translateZ(100px);
+  background: linear-gradient(135deg, 
+    rgba(var(--theme-primary-rgb, 102, 126, 234), 0.9),
+    rgba(var(--theme-secondary-rgb, 118, 75, 162), 0.8)
+  );
+  border-color: rgba(var(--theme-primary-rgb, 102, 126, 234), 0.58);
+  box-shadow: 
+    0 0 30px rgba(var(--theme-primary-rgb, 102, 126, 234), 0.5),
+    0 0 0 0.5px rgba(255, 255, 255, 0.4);
+}
+
+/* 底面 - 最暗 */
+.cube-bottom {
+  transform: rotateX(-90deg) translateZ(100px);
+  background: linear-gradient(135deg, 
+    rgba(var(--theme-primary-rgb, 102, 126, 234), 0.5),
+    rgba(var(--theme-secondary-rgb, 118, 75, 162), 0.4)
+  );
+  border-color: rgba(var(--theme-primary-rgb, 102, 126, 234), 0.45);
+  box-shadow: 
+    0 0 15px rgba(var(--theme-primary-rgb, 102, 126, 234), 0.3),
+    0 0 0 0.5px rgba(255, 255, 255, 0.25);
+}
+
+/* 移除高光效果 */
+.cube-face::before {
+  display: none;
+}
+
+/* 添加边缘高光 - 增强边的质感 */
+.cube-face::after {
+  content: '';
+  position: absolute;
+  top: -0.5px;
+  left: -0.5px;
+  right: -0.5px;
+  bottom: -0.5px;
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+  z-index: 2;
+  box-shadow: 
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.2),
+    0 0 4px rgba(255, 255, 255, 0.15);
+}
+

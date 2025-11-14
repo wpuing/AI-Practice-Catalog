@@ -1,0 +1,521 @@
+/**
+ * 登录框科技感线路图样式
+ */
+
+.login-card-circuit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+  background-image: 
+    /* 水平线路 - 增加到24条 */
+    linear-gradient(to right, transparent 0%, transparent 5%, rgba(102, 126, 234, 0.6) 5%, rgba(102, 126, 234, 0.6) 7%, transparent 7%, transparent 12%, rgba(102, 126, 234, 0.6) 12%, rgba(102, 126, 234, 0.6) 14%, transparent 14%),
+    linear-gradient(to right, transparent 0%, transparent 18%, rgba(102, 126, 234, 0.5) 18%, rgba(102, 126, 234, 0.5) 20%, transparent 20%),
+    linear-gradient(to right, transparent 0%, transparent 30%, rgba(102, 126, 234, 0.5) 30%, rgba(102, 126, 234, 0.5) 32%, transparent 32%),
+    linear-gradient(to right, transparent 0%, transparent 42%, rgba(102, 126, 234, 0.6) 42%, rgba(102, 126, 234, 0.6) 44%, transparent 44%),
+    linear-gradient(to right, transparent 0%, transparent 55%, rgba(102, 126, 234, 0.5) 55%, rgba(102, 126, 234, 0.5) 57%, transparent 57%),
+    linear-gradient(to right, transparent 0%, transparent 68%, rgba(102, 126, 234, 0.6) 68%, rgba(102, 126, 234, 0.6) 70%, transparent 70%),
+    linear-gradient(to right, transparent 0%, transparent 80%, rgba(102, 126, 234, 0.5) 80%, rgba(102, 126, 234, 0.5) 82%, transparent 82%),
+    linear-gradient(to right, transparent 0%, transparent 92%, rgba(102, 126, 234, 0.6) 92%, rgba(102, 126, 234, 0.6) 94%, transparent 94%),
+    /* 垂直线路 - 增加到16条 */
+    linear-gradient(to bottom, transparent 0%, transparent 8%, rgba(102, 126, 234, 0.6) 8%, rgba(102, 126, 234, 0.6) 10%, transparent 10%, transparent 18%, rgba(102, 126, 234, 0.6) 18%, rgba(102, 126, 234, 0.6) 20%, transparent 20%),
+    linear-gradient(to bottom, transparent 0%, transparent 25%, rgba(102, 126, 234, 0.5) 25%, rgba(102, 126, 234, 0.5) 27%, transparent 27%),
+    linear-gradient(to bottom, transparent 0%, transparent 35%, rgba(102, 126, 234, 0.5) 35%, rgba(102, 126, 234, 0.5) 37%, transparent 37%),
+    linear-gradient(to bottom, transparent 0%, transparent 45%, rgba(102, 126, 234, 0.6) 45%, rgba(102, 126, 234, 0.6) 47%, transparent 47%),
+    linear-gradient(to bottom, transparent 0%, transparent 55%, rgba(102, 126, 234, 0.5) 55%, rgba(102, 126, 234, 0.5) 57%, transparent 57%),
+    linear-gradient(to bottom, transparent 0%, transparent 65%, rgba(102, 126, 234, 0.6) 65%, rgba(102, 126, 234, 0.6) 67%, transparent 67%),
+    linear-gradient(to bottom, transparent 0%, transparent 75%, rgba(102, 126, 234, 0.5) 75%, rgba(102, 126, 234, 0.5) 77%, transparent 77%),
+    linear-gradient(to bottom, transparent 0%, transparent 85%, rgba(102, 126, 234, 0.6) 85%, rgba(102, 126, 234, 0.6) 87%, transparent 87%),
+    linear-gradient(to bottom, transparent 0%, transparent 92%, rgba(102, 126, 234, 0.5) 92%, rgba(102, 126, 234, 0.5) 94%, transparent 94%);
+  background-size: 
+    100% 2px,
+    100% 2px,
+    100% 2px,
+    100% 2px,
+    100% 2px,
+    100% 2px,
+    100% 2px,
+    100% 2px,
+    2px 100%,
+    2px 100%,
+    2px 100%,
+    2px 100%,
+    2px 100%,
+    2px 100%,
+    2px 100%,
+    2px 100%;
+  background-position:
+    0% 10%,
+    0% 20%,
+    0% 30%,
+    0% 40%,
+    0% 50%,
+    0% 60%,
+    0% 70%,
+    0% 80%,
+    8% 0%,
+    20% 0%,
+    35% 0%,
+    50% 0%,
+    65% 0%,
+    78% 0%,
+    88% 0%,
+    95% 0%;
+  background-repeat: no-repeat;
+}
+
+/* 线路 - 更粗更明显的线路 */
+.circuit-line {
+  position: absolute;
+  background: rgba(102, 126, 234, 0.7);
+  border-radius: 2px;
+  box-shadow: 0 0 4px rgba(102, 126, 234, 0.5);
+}
+
+.circuit-line-1 {
+  top: 20%;
+  left: 15%;
+  width: 140px;
+  height: 2px;
+}
+
+.circuit-line-2 {
+  top: 40%;
+  right: 20%;
+  width: 120px;
+  height: 2px;
+}
+
+.circuit-line-3 {
+  bottom: 25%;
+  left: 25%;
+  width: 160px;
+  height: 2px;
+}
+
+.circuit-line-4 {
+  top: 20%;
+  left: 15%;
+  width: 2px;
+  height: 100px;
+}
+
+.circuit-line-5 {
+  bottom: 25%;
+  right: 20%;
+  width: 2px;
+  height: 120px;
+}
+
+.circuit-line-6 {
+  top: 65%;
+  left: 50%;
+  width: 100px;
+  height: 2px;
+}
+
+.circuit-line-7 {
+  top: 20%;
+  left: 45%;
+  width: 2px;
+  height: 80px;
+}
+
+.circuit-line-8 {
+  top: 40%;
+  left: 70%;
+  width: 2px;
+  height: 60px;
+}
+
+.circuit-line-9 {
+  top: 10%;
+  left: 30%;
+  width: 100px;
+  height: 2px;
+}
+
+.circuit-line-10 {
+  top: 30%;
+  left: 8%;
+  width: 90px;
+  height: 2px;
+}
+
+.circuit-line-11 {
+  top: 50%;
+  right: 15%;
+  width: 110px;
+  height: 2px;
+}
+
+.circuit-line-12 {
+  bottom: 15%;
+  left: 35%;
+  width: 130px;
+  height: 2px;
+}
+
+.circuit-line-13 {
+  top: 15%;
+  left: 60%;
+  width: 2px;
+  height: 70px;
+}
+
+.circuit-line-14 {
+  top: 35%;
+  left: 25%;
+  width: 2px;
+  height: 90px;
+}
+
+.circuit-line-15 {
+  top: 55%;
+  right: 25%;
+  width: 2px;
+  height: 75px;
+}
+
+.circuit-line-16 {
+  bottom: 20%;
+  left: 55%;
+  width: 2px;
+  height: 85px;
+}
+
+.circuit-line-17 {
+  top: 25%;
+  left: 80%;
+  width: 80px;
+  height: 2px;
+}
+
+.circuit-line-18 {
+  top: 45%;
+  left: 12%;
+  width: 95px;
+  height: 2px;
+}
+
+.circuit-line-19 {
+  bottom: 30%;
+  right: 10%;
+  width: 105px;
+  height: 2px;
+}
+
+.circuit-line-20 {
+  top: 70%;
+  left: 30%;
+  width: 115px;
+  height: 2px;
+}
+
+.circuit-line-21 {
+  top: 12%;
+  left: 38%;
+  width: 2px;
+  height: 65px;
+}
+
+.circuit-line-22 {
+  top: 42%;
+  left: 62%;
+  width: 2px;
+  height: 80px;
+}
+
+.circuit-line-23 {
+  bottom: 18%;
+  right: 30%;
+  width: 2px;
+  height: 70px;
+}
+
+.circuit-line-24 {
+  top: 60%;
+  left: 18%;
+  width: 2px;
+  height: 75px;
+}
+
+/* 节点 - 更明显的连接点 */
+.circuit-node {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: rgba(102, 126, 234, 0.9);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 8px rgba(102, 126, 234, 1),
+    0 0 16px rgba(102, 126, 234, 0.6),
+    inset 0 0 4px rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(102, 126, 234, 1);
+}
+
+.circuit-node-1 {
+  top: 20%;
+  left: 15%;
+  transform: translate(-50%, -50%);
+}
+
+.circuit-node-2 {
+  top: 40%;
+  right: 20%;
+  transform: translate(50%, -50%);
+}
+
+.circuit-node-3 {
+  bottom: 25%;
+  left: 25%;
+  transform: translate(-50%, 50%);
+}
+
+.circuit-node-4 {
+  top: 65%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.circuit-node-5 {
+  top: 20%;
+  left: 45%;
+  transform: translate(-50%, -50%);
+}
+
+.circuit-node-6 {
+  top: 40%;
+  left: 70%;
+  transform: translate(-50%, -50%);
+}
+
+.circuit-node-7 {
+  top: 10%;
+  left: 30%;
+  transform: translate(-50%, -50%);
+}
+
+.circuit-node-8 {
+  top: 30%;
+  left: 8%;
+  transform: translate(-50%, -50%);
+}
+
+.circuit-node-9 {
+  top: 50%;
+  right: 15%;
+  transform: translate(50%, -50%);
+}
+
+.circuit-node-10 {
+  bottom: 15%;
+  left: 35%;
+  transform: translate(-50%, 50%);
+}
+
+.circuit-node-11 {
+  top: 25%;
+  left: 80%;
+  transform: translate(-50%, -50%);
+}
+
+.circuit-node-12 {
+  top: 45%;
+  left: 12%;
+  transform: translate(-50%, -50%);
+}
+
+/* 电流脉冲效果 - 更明显的信号流动 */
+.circuit-pulse {
+  position: absolute;
+  width: 3px;
+  height: 30px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(102, 126, 234, 0.8) 20%,
+    rgba(102, 126, 234, 1) 50%,
+    rgba(102, 126, 234, 0.8) 80%,
+    transparent 100%
+  );
+  box-shadow: 
+    0 0 10px rgba(102, 126, 234, 1),
+    0 0 20px rgba(102, 126, 234, 0.8),
+    0 0 30px rgba(102, 126, 234, 0.5);
+  border-radius: 2px;
+  opacity: 0;
+}
+
+.circuit-pulse-1 {
+  top: 20%;
+  left: 15%;
+  animation: pulseFlow1 3s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.circuit-pulse-2 {
+  top: 40%;
+  right: 20%;
+  animation: pulseFlow2 3.5s ease-in-out infinite;
+  animation-delay: 1.2s;
+}
+
+.circuit-pulse-3 {
+  bottom: 25%;
+  left: 25%;
+  animation: pulseFlow3 4s ease-in-out infinite;
+  animation-delay: 2.5s;
+}
+
+.circuit-pulse-4 {
+  top: 10%;
+  left: 30%;
+  animation: pulseFlow4 3.2s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+
+.circuit-pulse-5 {
+  top: 50%;
+  right: 15%;
+  animation: pulseFlow5 3.8s ease-in-out infinite;
+  animation-delay: 1.8s;
+}
+
+.circuit-pulse-6 {
+  bottom: 15%;
+  left: 35%;
+  animation: pulseFlow6 4.2s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+@keyframes pulseFlow1 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate(140px, 0);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    transform: translate(140px, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes pulseFlow2 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate(-120px, 0);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-120px, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes pulseFlow3 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate(160px, 0);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    transform: translate(160px, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes pulseFlow4 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate(100px, 0);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    transform: translate(100px, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes pulseFlow5 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate(-110px, 0);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-110px, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes pulseFlow6 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate(130px, 0);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    transform: translate(130px, 0);
+    opacity: 0;
+  }
+}
+

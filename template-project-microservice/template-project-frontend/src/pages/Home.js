@@ -1,178 +1,218 @@
 /**
- * 商城首页
+ * 系统首页 - 微服务管理系统概览
  */
 
 import router from '@utils/router.js';
 import { ROUTE_CONFIG } from '@config/index.js';
 import logger from '@utils/logger.js';
+import store from '@utils/store.js';
 
 export default async function HomePage() {
-  // 初始化搜索功能
+  // 不依赖store，避免认证检查导致的问题
+  let user = {};
+  try {
+    const state = store.getState();
+    user = state.user || {};
+  } catch (error) {
+    logger.warn('Failed to get user state', error);
+  }
+
+  // 初始化页面交互
   setTimeout(() => {
-    initSearch();
+    initPageInteractions();
   }, 0);
 
   return `
     <div class="home-page">
-      <!-- 顶部横幅区域 -->
+      <!-- 欢迎区域 -->
       <section class="home-hero">
+        <div class="hero-background">
+          <div class="hero-gradient"></div>
+          <div class="hero-pattern"></div>
+        </div>
         <div class="hero-content">
-          <h1 class="hero-title">欢迎来到精品商城</h1>
-          <p class="hero-subtitle">发现优质商品，享受购物乐趣</p>
-          
-          <!-- 搜索框 -->
-          <div class="search-container">
-            <div class="search-box">
-              <input 
-                type="text" 
-                id="searchInput" 
-                class="search-input" 
-                placeholder="搜索商品、品牌、分类..."
-                autocomplete="off"
-              />
-              <button id="searchBtn" class="search-btn">
-                <span class="search-icon">🔍</span>
-                <span class="search-text">搜索</span>
-              </button>
-            </div>
-            <div class="search-suggestions">
-              <span class="suggestion-label">热门搜索：</span>
-              <a href="#" class="suggestion-tag" data-keyword="手机">手机</a>
-              <a href="#" class="suggestion-tag" data-keyword="电脑">电脑</a>
-              <a href="#" class="suggestion-tag" data-keyword="服装">服装</a>
-              <a href="#" class="suggestion-tag" data-keyword="食品">食品</a>
-              <a href="#" class="suggestion-tag" data-keyword="家电">家电</a>
-            </div>
+          <div class="hero-badge">
+            <span class="badge-dot"></span>
+            <span class="badge-text">微服务架构平台</span>
+          </div>
+          <h1 class="hero-title">
+            <span class="title-line">微服务</span>
+            <span class="title-line title-accent">管理系统</span>
+          </h1>
+          <p class="hero-subtitle">企业级分布式架构 · 统一配置管理 · 服务治理</p>
+          <div class="hero-actions">
+            <a href="${ROUTE_CONFIG.DASHBOARD}" data-router class="hero-btn hero-btn-primary">
+              <span class="btn-content">
+                <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span class="btn-label">进入仪表盘</span>
+              </span>
+              <div class="btn-ripple"></div>
+            </a>
+            <a href="${ROUTE_CONFIG.USER_MANAGEMENT}" data-router class="hero-btn hero-btn-outline">
+              <span class="btn-content">
+                <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span class="btn-label">用户管理</span>
+              </span>
+              <div class="btn-ripple"></div>
+            </a>
           </div>
         </div>
       </section>
 
-      <!-- 商品分类区域 -->
-      <section class="home-categories">
+      <!-- 系统概览 -->
+      <section class="home-overview">
         <div class="container">
-          <h2 class="section-title">商品分类</h2>
-          <div class="category-grid">
-            <div class="category-card">
-              <div class="category-icon">📱</div>
-              <h3 class="category-name">电子产品</h3>
-              <p class="category-desc">手机、电脑、数码配件</p>
-            </div>
-            <div class="category-card">
-              <div class="category-icon">👔</div>
-              <h3 class="category-name">服装配饰</h3>
-              <p class="category-desc">男装、女装、配饰</p>
-            </div>
-            <div class="category-card">
-              <div class="category-icon">🍔</div>
-              <h3 class="category-name">食品饮料</h3>
-              <p class="category-desc">零食、饮料、生鲜</p>
-            </div>
-            <div class="category-card">
-              <div class="category-icon">🏠</div>
-              <h3 class="category-name">家居用品</h3>
-              <p class="category-desc">家具、装饰、日用品</p>
-            </div>
-            <div class="category-card">
-              <div class="category-icon">💄</div>
-              <h3 class="category-name">美妆护肤</h3>
-              <p class="category-desc">化妆品、护肤品、香水</p>
-            </div>
-            <div class="category-card">
-              <div class="category-icon">⚽</div>
-              <h3 class="category-name">运动户外</h3>
-              <p class="category-desc">运动装备、户外用品</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 推荐商品区域 -->
-      <section class="home-products">
-        <div class="container">
-          <div class="section-header">
-            <h2 class="section-title">热门推荐</h2>
-            <a href="${ROUTE_CONFIG.PRODUCT_MANAGEMENT}" data-router class="section-more">查看更多 →</a>
-          </div>
-          <div class="product-grid">
-            <div class="product-card">
-              <div class="product-image">
-                <div class="product-placeholder">📦</div>
-              </div>
-              <div class="product-info">
-                <h3 class="product-name">示例商品 1</h3>
-                <p class="product-desc">商品描述信息</p>
-                <div class="product-footer">
-                  <span class="product-price">¥99.00</span>
-                  <button class="btn btn-primary btn-small">立即购买</button>
-                </div>
+          <h2 class="section-title">系统概览</h2>
+          <div class="overview-grid">
+            <div class="overview-card">
+              <div class="overview-icon">🔐</div>
+              <h3 class="overview-title">认证服务</h3>
+              <p class="overview-desc">用户认证与授权管理</p>
+              <div class="overview-status">
+                <span class="status-dot status-online"></span>
+                <span class="status-text">运行中</span>
               </div>
             </div>
-            <div class="product-card">
-              <div class="product-image">
-                <div class="product-placeholder">📦</div>
-              </div>
-              <div class="product-info">
-                <h3 class="product-name">示例商品 2</h3>
-                <p class="product-desc">商品描述信息</p>
-                <div class="product-footer">
-                  <span class="product-price">¥199.00</span>
-                  <button class="btn btn-primary btn-small">立即购买</button>
-                </div>
+            
+            <div class="overview-card">
+              <div class="overview-icon">👥</div>
+              <h3 class="overview-title">用户服务</h3>
+              <p class="overview-desc">用户信息与权限管理</p>
+              <div class="overview-status">
+                <span class="status-dot status-online"></span>
+                <span class="status-text">运行中</span>
               </div>
             </div>
-            <div class="product-card">
-              <div class="product-image">
-                <div class="product-placeholder">📦</div>
-              </div>
-              <div class="product-info">
-                <h3 class="product-name">示例商品 3</h3>
-                <p class="product-desc">商品描述信息</p>
-                <div class="product-footer">
-                  <span class="product-price">¥299.00</span>
-                  <button class="btn btn-primary btn-small">立即购买</button>
-                </div>
+            
+            <div class="overview-card">
+              <div class="overview-icon">📦</div>
+              <h3 class="overview-title">商品服务</h3>
+              <p class="overview-desc">商品信息管理</p>
+              <div class="overview-status">
+                <span class="status-dot status-online"></span>
+                <span class="status-text">运行中</span>
               </div>
             </div>
-            <div class="product-card">
-              <div class="product-image">
-                <div class="product-placeholder">📦</div>
+            
+            <div class="overview-card">
+              <div class="overview-icon">📊</div>
+              <h3 class="overview-title">报表服务</h3>
+              <p class="overview-desc">数据报表与分析</p>
+              <div class="overview-status">
+                <span class="status-dot status-online"></span>
+                <span class="status-text">运行中</span>
               </div>
-              <div class="product-info">
-                <h3 class="product-name">示例商品 4</h3>
-                <p class="product-desc">商品描述信息</p>
-                <div class="product-footer">
-                  <span class="product-price">¥399.00</span>
-                  <button class="btn btn-primary btn-small">立即购买</button>
-                </div>
+            </div>
+            
+            <div class="overview-card">
+              <div class="overview-icon">📁</div>
+              <h3 class="overview-title">文件服务</h3>
+              <p class="overview-desc">文件存储与管理</p>
+              <div class="overview-status">
+                <span class="status-dot status-online"></span>
+                <span class="status-text">运行中</span>
+              </div>
+            </div>
+            
+            <div class="overview-card">
+              <div class="overview-icon">🚪</div>
+              <h3 class="overview-title">网关服务</h3>
+              <p class="overview-desc">API 网关与路由</p>
+              <div class="overview-status">
+                <span class="status-dot status-online"></span>
+                <span class="status-text">运行中</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- 特色服务区域 -->
-      <section class="home-features">
+      <!-- 快速入口 -->
+      <section class="home-quick-access">
         <div class="container">
-          <div class="feature-grid">
-            <div class="feature-item">
-              <div class="feature-icon">🚚</div>
-              <h3 class="feature-title">快速配送</h3>
-              <p class="feature-desc">24小时内发货</p>
+          <h2 class="section-title">快速入口</h2>
+          <div class="quick-access-grid">
+            <a href="${ROUTE_CONFIG.DASHBOARD}" data-router class="quick-access-item">
+              <div class="quick-access-icon">📊</div>
+              <h3 class="quick-access-title">仪表盘</h3>
+              <p class="quick-access-desc">查看系统统计信息</p>
+            </a>
+            
+            <a href="${ROUTE_CONFIG.USER_MANAGEMENT}" data-router class="quick-access-item">
+              <div class="quick-access-icon">👥</div>
+              <h3 class="quick-access-title">用户管理</h3>
+              <p class="quick-access-desc">管理用户账户</p>
+            </a>
+            
+            <a href="${ROUTE_CONFIG.PRODUCT_MANAGEMENT}" data-router class="quick-access-item">
+              <div class="quick-access-icon">📦</div>
+              <h3 class="quick-access-title">商品管理</h3>
+              <p class="quick-access-desc">管理商品信息</p>
+            </a>
+            
+            <a href="${ROUTE_CONFIG.REPORT_MANAGEMENT}" data-router class="quick-access-item">
+              <div class="quick-access-icon">📈</div>
+              <h3 class="quick-access-title">报表管理</h3>
+              <p class="quick-access-desc">查看数据报表</p>
+            </a>
+            
+            <a href="${ROUTE_CONFIG.FILE_MANAGEMENT}" data-router class="quick-access-item">
+              <div class="quick-access-icon">📁</div>
+              <h3 class="quick-access-title">文件管理</h3>
+              <p class="quick-access-desc">管理文件资源</p>
+            </a>
+            
+            <a href="${ROUTE_CONFIG.SETTINGS}" data-router class="quick-access-item">
+              <div class="quick-access-icon">⚙️</div>
+              <h3 class="quick-access-title">系统设置</h3>
+              <p class="quick-access-desc">配置系统参数</p>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- 系统信息 -->
+      <section class="home-info">
+        <div class="container">
+          <div class="info-grid">
+            <div class="info-card">
+              <h3 class="info-title">技术栈</h3>
+              <ul class="info-list">
+                <li>Spring Cloud Alibaba</li>
+                <li>Nacos 配置中心</li>
+                <li>Spring Cloud Gateway</li>
+                <li>PostgreSQL 数据库</li>
+                <li>Redis 缓存</li>
+              </ul>
             </div>
-            <div class="feature-item">
-              <div class="feature-icon">🛡️</div>
-              <h3 class="feature-title">正品保证</h3>
-              <p class="feature-desc">100%正品保障</p>
+            
+            <div class="info-card">
+              <h3 class="info-title">系统特性</h3>
+              <ul class="info-list">
+                <li>微服务架构</li>
+                <li>统一配置管理</li>
+                <li>服务注册发现</li>
+                <li>API 网关路由</li>
+                <li>JWT 认证授权</li>
+              </ul>
             </div>
-            <div class="feature-item">
-              <div class="feature-icon">↩️</div>
-              <h3 class="feature-title">7天退换</h3>
-              <p class="feature-desc">无忧退换货</p>
-            </div>
-            <div class="feature-item">
-              <div class="feature-icon">💳</div>
-              <h3 class="feature-title">安全支付</h3>
-              <p class="feature-desc">多种支付方式</p>
+            
+            <div class="info-card">
+              <h3 class="info-title">当前用户</h3>
+              <div class="user-info">
+                <p><strong>用户名：</strong>${user.username || '未登录'}</p>
+                <p><strong>状态：</strong><span class="status-badge status-active">已登录</span></p>
+              </div>
             </div>
           </div>
         </div>
@@ -181,48 +221,9 @@ export default async function HomePage() {
   `;
 }
 
-// 初始化搜索功能
-function initSearch() {
-  const searchInput = document.getElementById('searchInput');
-  const searchBtn = document.getElementById('searchBtn');
-  const suggestionTags = document.querySelectorAll('.suggestion-tag');
-
-  // 搜索按钮点击事件
-  if (searchBtn) {
-    searchBtn.addEventListener('click', handleSearch);
-  }
-
-  // 回车键搜索
-  if (searchInput) {
-    searchInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        handleSearch();
-      }
-    });
-  }
-
-  // 热门搜索标签点击
-  suggestionTags.forEach(tag => {
-    tag.addEventListener('click', (e) => {
-      e.preventDefault();
-      const keyword = tag.getAttribute('data-keyword');
-      if (searchInput) {
-        searchInput.value = keyword;
-        handleSearch();
-      }
-    });
-  });
-
-  function handleSearch() {
-    const keyword = searchInput?.value.trim();
-    if (!keyword) {
-      logger.warn('Search keyword is empty');
-      return;
-    }
-
-    logger.info('Search triggered', { keyword });
-    // 跳转到商品管理页面并传递搜索关键词
-    router.push(`${ROUTE_CONFIG.PRODUCT_MANAGEMENT}?keyword=${encodeURIComponent(keyword)}`);
-  }
+// 初始化页面交互
+function initPageInteractions() {
+  // 可以在这里添加页面交互逻辑
+  logger.info('Home page initialized');
 }
 

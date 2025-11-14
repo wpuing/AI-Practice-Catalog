@@ -158,13 +158,36 @@ class Router {
     }
 
     try {
+      let html;
+      let initFn = null;
+      
       if (typeof component === 'function') {
-        const html = await component(params);
+        const result = await component(params);
+        if (typeof result === 'object' && result.html && result.init) {
+          // 组件返回了 { html, init } 对象
+          html = result.html;
+          initFn = result.init;
+        } else {
+          // 组件返回了HTML字符串
+          html = result;
+        }
         container.innerHTML = html;
       } else if (typeof component === 'string') {
         container.innerHTML = component;
       } else {
         logger.error('Invalid component type', { component });
+        return;
+      }
+      
+      // 如果组件有初始化函数，调用它
+      if (initFn && typeof initFn === 'function') {
+        setTimeout(() => {
+          try {
+            initFn();
+          } catch (error) {
+            logger.error('Failed to initialize component', error);
+          }
+        }, 0);
       }
     } catch (error) {
       logger.error('Failed to render component', error);

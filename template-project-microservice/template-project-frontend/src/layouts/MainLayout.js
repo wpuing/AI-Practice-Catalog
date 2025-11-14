@@ -8,8 +8,14 @@ import { ROUTE_CONFIG } from '@config/index.js';
 import store from '@utils/store.js';
 
 export function createMainLayout(content) {
-  const state = store.getState();
-  const user = state.user || {};
+  // 安全获取用户信息，避免认证问题
+  let user = {};
+  try {
+    const state = store.getState();
+    user = state.user || {};
+  } catch (error) {
+    // 忽略错误，使用默认值
+  }
 
   return `
     <div class="main-layout">
@@ -48,14 +54,21 @@ export function initMainLayout() {
   // 处理登出
   document.addEventListener('click', async (e) => {
     if (e.target.id === 'logoutBtn') {
-      await authService.logout();
+      try {
+        await authService.logout();
+      } catch (error) {
+        // 即使登出失败，也清除本地状态
+        console.warn('Logout failed', error);
+      }
       router.push(ROUTE_CONFIG.LOGIN);
     }
   });
 
-  // 监听认证状态变化
+  // 监听认证状态变化（仅在非首页时跳转）
   store.subscribe((state) => {
-    if (!state.isAuthenticated) {
+    const currentPath = window.location.pathname;
+    // 首页和登录页不需要认证，不进行跳转
+    if (!state.isAuthenticated && currentPath !== ROUTE_CONFIG.HOME && currentPath !== ROUTE_CONFIG.LOGIN) {
       router.push(ROUTE_CONFIG.LOGIN);
     }
   });

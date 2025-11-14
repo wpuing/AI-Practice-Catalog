@@ -15,21 +15,99 @@ class AuthService {
    */
   async login(username, password) {
     try {
+      console.log('=== AuthService.login Start ===');
+      console.log('Username:', username);
+      console.log('Password provided:', !!password);
+      
       const response = await authApi.login(username, password);
-      const { token, user } = response.data || response;
+      console.log('=== AuthService.login API Response ===');
+      console.log('Response type:', typeof response);
+      console.log('Response:', JSON.stringify(response, null, 2));
+      console.log('Response.code:', response?.code);
+      console.log('Response.message:', response?.message);
+      console.log('Response.data:', response?.data);
+      
+      // 后端返回格式：Result<LoginResponse> = { code, message, data: { token, userId, username } }
+      // 检查响应格式
+      let loginData;
+      
+      // 首先检查是否是Result格式
+      if (response && typeof response === 'object') {
+        if ('data' in response && response.data) {
+          // 标准Result格式：{ code, message, data: { token, userId, username } }
+          console.log('Detected Result format with data field');
+          loginData = response.data;
+        } else if ('token' in response) {
+          // 直接返回LoginResponse格式：{ token, userId, username }
+          console.log('Detected direct LoginResponse format');
+          loginData = response;
+        } else {
+          console.error('Unknown response format:', response);
+          throw new Error(response?.message || '登录失败：响应格式错误');
+        }
+      } else {
+        console.error('Invalid response:', response);
+        throw new Error('登录失败：响应格式错误');
+      }
+      
+      console.log('=== Extracted Login Data ===');
+      console.log('LoginData:', loginData);
+      console.log('Token:', loginData?.token);
+      console.log('UserId:', loginData?.userId);
+      console.log('Username:', loginData?.username);
+      
+      if (!loginData || !loginData.token) {
+        console.error('Missing token in loginData:', loginData);
+        throw new Error(response?.message || '登录失败：未获取到Token');
+      }
+
+      // 构建用户信息对象
+      const user = {
+        id: loginData.userId,
+        userId: loginData.userId,
+        username: loginData.username
+      };
+
+      console.log('=== Storing User Data ===');
+      console.log('User object:', user);
+      console.log('Token:', loginData.token);
 
       // 存储 token 和用户信息
-      localStore.set(STORAGE_CONFIG.TOKEN_KEY, token);
+      localStore.set(STORAGE_CONFIG.TOKEN_KEY, loginData.token);
       localStore.set(STORAGE_CONFIG.USER_KEY, user);
 
       // 更新状态
       store.setState({ user, isAuthenticated: true });
 
-      logger.info('User logged in', { username });
+      console.log('=== Login Success ===');
+      logger.info('User logged in', { username, userId: user.userId });
       return { success: true, user };
     } catch (error) {
+      console.error('=== AuthService.login Error ===');
+      console.error('Error type:', typeof error);
+      console.error('Error object:', error);
+      console.error('Error message:', error?.message);
+      console.error('Error status:', error?.status);
+      console.error('Error code:', error?.code);
+      console.error('Error data:', error?.data);
+      console.error('Error stack:', error?.stack);
+      
       logger.error('Login failed', error);
-      throw error;
+      
+      // 提取错误消息
+      let errorMessage = '登录失败，请检查用户名和密码';
+      if (error?.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error?.data?.data?.message) {
+        errorMessage = error.data.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      console.error('Final error message:', errorMessage);
+      throw new Error(errorMessage);
     }
   }
 
