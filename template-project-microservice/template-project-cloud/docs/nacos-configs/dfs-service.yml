@@ -13,7 +13,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/demo_cloud
     username: postgres
-    password: postgres
+    password: 123456
     driver-class-name: org.postgresql.Driver
     druid:
       initial-size: 5
@@ -52,7 +52,7 @@ mybatis-plus:
 # 文件存储配置
 file:
   upload:
-    path: /data/uploads
+    path: ./uploads  # 使用相对路径，便于开发环境测试
     max-size: 10485760  # 10MB
 
 # 日志配置

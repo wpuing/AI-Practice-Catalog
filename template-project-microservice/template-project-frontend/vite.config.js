@@ -15,12 +15,13 @@ export default defineConfig({
     }
   },
   server: {
-    port: 3000,
+    port: 3001,
     open: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8888',  // Gateway 端口已改为 8888
+        target: 'http://localhost:8888',  // Gateway 端口
         changeOrigin: true,
+        secure: false,
         // 不重写路径，保持 /api 前缀，因为网关路由配置是 /api/auth/**
         // rewrite: (path) => path.replace(/^\/api/, ''),
         // 排除静态资源文件，避免代理前端模块文件
@@ -29,6 +30,14 @@ export default defineConfig({
           if (req.url && /\.(js|css|html|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/i.test(req.url)) {
             return req.url;
           }
+        },
+        configure: (proxy, options) => {
+          proxy.on('error', (err, req, res) => {
+            console.log('Proxy error:', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('Proxying request:', req.method, req.url, '->', options.target + req.url);
+          });
         }
       }
     }

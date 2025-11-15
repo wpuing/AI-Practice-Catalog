@@ -27,7 +27,7 @@ export const APP_CONFIG = {
   VERSION: '1.0.0',
   TITLE: '企业级微服务前端系统',
   DESCRIPTION: '基于 JavaScript 原生的企业级前端应用',
-  COPYRIGHT: '© 2024 Template Project. All rights reserved.'
+  COPYRIGHT: '© 2025 版权所有 | 作者：靓仔 | 邮箱：weiyzhong@126.com'
 };
 
 // 存储配置

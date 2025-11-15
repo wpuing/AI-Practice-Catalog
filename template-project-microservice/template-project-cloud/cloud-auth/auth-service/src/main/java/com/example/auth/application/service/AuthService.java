@@ -37,8 +37,21 @@ public class AuthService {
             throw new BusinessException(ResultCode.UNAUTHORIZED, "用户名或密码错误");
         }
 
-        // 验证密码
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        // 验证密码（添加调试日志）
+        String storedPassword = user.getPassword();
+        String inputPassword = request.getPassword();
+        boolean passwordMatches = passwordEncoder.matches(inputPassword, storedPassword);
+        
+        // 调试日志
+        System.out.println("=== 密码验证调试信息 ===");
+        System.out.println("用户名: " + request.getUsername());
+        System.out.println("输入密码长度: " + (inputPassword != null ? inputPassword.length() : 0));
+        System.out.println("存储密码哈希: " + (storedPassword != null ? storedPassword.substring(0, Math.min(20, storedPassword.length())) + "..." : "null"));
+        System.out.println("密码匹配结果: " + passwordMatches);
+        System.out.println("用户状态: " + user.getStatus());
+        System.out.println("========================");
+        
+        if (!passwordMatches) {
             throw new BusinessException(ResultCode.UNAUTHORIZED, "用户名或密码错误");
         }
 

@@ -146,9 +146,25 @@ class AuthService {
    * 检查是否已登录
    */
   isAuthenticated() {
-    const token = localStore.get(STORAGE_CONFIG.TOKEN_KEY);
-    const user = localStore.get(STORAGE_CONFIG.USER_KEY);
-    return !!(token && user);
+    try {
+      const token = localStore.get(STORAGE_CONFIG.TOKEN_KEY);
+      const user = localStore.get(STORAGE_CONFIG.USER_KEY);
+      const isAuth = !!(token && user);
+      
+      // 调试日志
+      if (!isAuth) {
+        console.log('=== Authentication Check Failed ===');
+        console.log('Token exists:', !!token);
+        console.log('User exists:', !!user);
+        console.log('Token:', token);
+        console.log('User:', user);
+      }
+      
+      return isAuth;
+    } catch (error) {
+      logger.error('Failed to check authentication status', error);
+      return false;
+    }
   }
 
   /**

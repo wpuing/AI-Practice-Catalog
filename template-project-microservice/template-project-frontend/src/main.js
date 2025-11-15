@@ -16,6 +16,10 @@ import { createMainLayout, initMainLayout } from '@layouts/MainLayout.js';
 import LoginPage from '@pages/Login.js';
 import HomePage from '@pages/Home.js';
 import DashboardPage from '@pages/Dashboard.js';
+import UserManagementPage from '@pages/UserManagement.js';
+import ProductManagementPage from '@pages/ProductManagement.js';
+import ReportManagementPage from '@pages/ReportManagement.js';
+import FileManagementPage from '@pages/FileManagement.js';
 import NotFoundPage from '@pages/NotFound.js';
 
 // 初始化错误处理
@@ -47,8 +51,24 @@ router.addRoute(ROUTE_CONFIG.HOME, async () => {
   return createMainLayout(html);
 }, { requiresAuth: false });
 router.addRoute(ROUTE_CONFIG.DASHBOARD, async () => {
-  const html = await DashboardPage();
-  return createMainLayout(html);
+  const result = await DashboardPage();
+  return result;
+}, { requiresAuth: true });
+router.addRoute(ROUTE_CONFIG.USER_MANAGEMENT, async () => {
+  const result = await UserManagementPage();
+  return result;
+}, { requiresAuth: true });
+router.addRoute(ROUTE_CONFIG.PRODUCT_MANAGEMENT, async () => {
+  const result = await ProductManagementPage();
+  return result;
+}, { requiresAuth: true });
+router.addRoute(ROUTE_CONFIG.REPORT_MANAGEMENT, async () => {
+  const result = await ReportManagementPage();
+  return result;
+}, { requiresAuth: true });
+router.addRoute(ROUTE_CONFIG.FILE_MANAGEMENT, async () => {
+  const result = await FileManagementPage();
+  return result;
 }, { requiresAuth: true });
 router.addRoute(ROUTE_CONFIG.NOT_FOUND, NotFoundPage);
 
@@ -56,8 +76,15 @@ router.addRoute(ROUTE_CONFIG.NOT_FOUND, NotFoundPage);
 router.beforeEach(async (to, from) => {
   const isAuthenticated = authService.isAuthenticated();
   
+  console.log('=== Route Guard Check ===');
+  console.log('To path:', to.path);
+  console.log('From path:', from?.path);
+  console.log('Is authenticated:', isAuthenticated);
+  console.log('Requires auth:', to.meta?.requiresAuth !== false);
+  
   // 如果已登录，访问登录页则跳转到仪表盘
   if (to.path === ROUTE_CONFIG.LOGIN && isAuthenticated) {
+    console.log('Already authenticated, redirecting to dashboard');
     router.replace(ROUTE_CONFIG.DASHBOARD);
     return false;
   }
@@ -65,6 +92,7 @@ router.beforeEach(async (to, from) => {
   // 如果未登录，访问需要认证的页面则跳转到登录页
   const requiresAuth = to.meta?.requiresAuth !== false;
   if (requiresAuth && !isAuthenticated) {
+    console.log('Unauthorized access attempt, redirecting to login');
     logger.warn('Unauthorized access attempt', { path: to.path });
     router.replace(ROUTE_CONFIG.LOGIN);
     return false;
@@ -72,10 +100,12 @@ router.beforeEach(async (to, from) => {
 
   // 如果访问首页且未登录，跳转到登录页
   if (to.path === ROUTE_CONFIG.HOME && !isAuthenticated) {
+    console.log('Not authenticated, redirecting to login');
     router.replace(ROUTE_CONFIG.LOGIN);
     return false;
   }
 
+  console.log('Route guard passed');
   return true;
 });
 

@@ -45,6 +45,13 @@ export const reportApi = {
    */
   exportReport(id, format = 'excel') {
     return http.get(`/reports/${id}/export`, { format });
+  },
+
+  /**
+   * 删除报表
+   */
+  deleteReport(id) {
+    return http.delete(`/reports/${id}`);
   }
 };
 

@@ -36,7 +36,7 @@ class Http {
   /**
    * 处理响应
    */
-  async handleResponse(response) {
+  async handleResponse(response, requestUrl = null) {
     const contentType = response.headers.get('content-type');
     let data;
 
@@ -71,22 +71,50 @@ class Http {
     }
 
     if (!response.ok) {
+      // 404错误 - 服务未找到
+      if (response.status === 404) {
+        const reqUrl = requestUrl || this._lastRequestUrl || 'unknown';
+        console.error('404 Not Found - 可能的原因：');
+        console.error('1. Gateway服务未启动（检查端口8888）');
+        console.error('2. 后端服务未启动（user-service, product-service, report-service, dfs-service）');
+        console.error('3. Gateway路由配置不正确');
+        console.error('4. 后端Controller未实现');
+        console.error('Request URL:', reqUrl);
+        console.error('Response status:', response.status);
+        console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+      }
+      
       // 403错误可能是CORS或认证问题
       if (response.status === 403) {
         console.error('403 Forbidden - 可能的原因：');
         console.error('1. Gateway CORS配置问题');
         console.error('2. 认证拦截器拦截了请求');
         console.error('3. 路由配置问题');
-        console.error('Response:', data);
+        console.error('Response status:', response.status);
+        console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+        console.error('Response data:', data);
+        console.error('Response data type:', typeof data);
+        console.error('Response data string:', typeof data === 'string' ? data : JSON.stringify(data));
       }
       
       // 后端返回格式：Result = { code, message, data }
       let errorMessage = data?.message || `HTTP error! status: ${response.status}`;
       
-      // 403错误特殊处理
-      if (response.status === 403) {
+      // 如果响应体是空的，尝试从响应头获取信息
+      if (response.status === 404) {
+        errorMessage = '后端服务未找到，请检查：1) Gateway服务是否启动(端口8888) 2) 后端服务是否启动 3) Gateway路由配置是否正确';
+      } else if (response.status === 403 && (!data || (typeof data === 'string' && data.trim() === ''))) {
+        const contentType = response.headers.get('content-type');
+        const wwwAuthenticate = response.headers.get('www-authenticate');
+        console.error('Empty response body for 403');
+        console.error('Content-Type:', contentType);
+        console.error('WWW-Authenticate:', wwwAuthenticate);
+        errorMessage = '访问被拒绝，请检查Gateway配置和CORS设置';
+      } else if (response.status === 403) {
         if (data?.message) {
           errorMessage = data.message;
+        } else if (typeof data === 'string' && data.trim()) {
+          errorMessage = data;
         } else {
           errorMessage = '访问被拒绝，请检查Gateway配置和CORS设置';
         }
@@ -221,7 +249,7 @@ class Http {
           }
           return response;
         })
-        .then(response => this.handleResponse(response));
+        .then(response => this.handleResponse(response, fullUrl));
       return timeout > 0
         ? this.timeoutPromise(promise, timeout)
         : promise;
@@ -302,17 +330,24 @@ class Http {
    * 下载文件
    */
   async download(url, filename, options = {}) {
-    const response = await this.request(url, {
-      ...options,
+    const fullUrl = url.startsWith('http') ? url : `${this.baseURL}${url}`;
+    const requestHeaders = this.getHeaders(options.headers || {});
+    
+    const response = await fetch(fullUrl, {
       method: 'GET',
-      responseType: 'blob'
+      headers: requestHeaders,
+      credentials: 'include'
     });
 
-    const blob = response instanceof Blob ? response : new Blob([response]);
+    if (!response.ok) {
+      throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+    }
+
+    const blob = await response.blob();
     const downloadUrl = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = downloadUrl;
-    link.download = filename;
+    link.download = filename || 'download';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

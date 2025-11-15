@@ -111,50 +111,56 @@ function initLoginPage() {
       // 清除之前的错误
       errorDiv.style.display = 'none';
 
-      try {
-        errorDiv.style.display = 'none';
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const btnText = submitBtn?.querySelector('.btn-text');
-        const btnArrow = submitBtn?.querySelector('.btn-arrow');
-        
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.classList.add('loading');
-          if (btnText) {
-            btnText.textContent = '登录中...';
-          }
-          if (btnArrow) {
-            btnArrow.style.display = 'none';
-          }
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const btnText = submitBtn?.querySelector('.btn-text');
+      const btnArrow = submitBtn?.querySelector('.btn-arrow');
+      
+      // 设置按钮为加载状态
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('loading');
+        if (btnText) {
+          btnText.textContent = '登录中...';
         }
+        if (btnArrow) {
+          btnArrow.style.display = 'none';
+        }
+      }
 
+      try {
         logger.info('Attempting login', { username });
         console.log('=== Login Request Start ===');
         console.log('Username:', username);
         console.log('Password length:', password?.length);
         
-        try {
-          const result = await authService.login(username, password);
-          console.log('=== Login Success ===');
-          console.log('Login result:', result);
+        const result = await authService.login(username, password);
+        console.log('=== Login Success ===');
+        console.log('Login result:', result);
+        
+        if (result && result.success) {
+          // 验证认证状态是否已更新
+          const isAuthenticated = authService.isAuthenticated();
+          console.log('=== Authentication Check ===');
+          console.log('Is authenticated:', isAuthenticated);
           
-          if (result && result.success) {
-            logger.info('Login successful', { username });
-            console.log('Redirecting to dashboard...');
-            // 延迟一下再跳转，确保状态已更新
-            setTimeout(() => {
-              router.push(ROUTE_CONFIG.DASHBOARD);
-            }, 100);
-          } else {
-            console.error('Login result missing success flag:', result);
-            throw new Error('登录失败：未返回成功结果');
+          if (!isAuthenticated) {
+            console.error('Authentication state not updated after login');
+            throw new Error('登录状态更新失败，请重试');
           }
-        } catch (loginError) {
-          console.error('=== Login Error in try block ===');
-          console.error('Error object:', loginError);
-          console.error('Error message:', loginError?.message);
-          console.error('Error stack:', loginError?.stack);
-          throw loginError;
+          
+          logger.info('Login successful', { username });
+          console.log('Redirecting to dashboard...');
+          
+          // 使用 replace 而不是 push，避免历史记录问题
+          // 确保在下一个事件循环中跳转，让所有状态更新完成
+          await new Promise(resolve => setTimeout(resolve, 50));
+          router.replace(ROUTE_CONFIG.DASHBOARD);
+          
+          // 登录成功，不重置按钮状态（因为页面即将跳转）
+          return;
+        } else {
+          console.error('Login result missing success flag:', result);
+          throw new Error('登录失败：未返回成功结果');
         }
       } catch (error) {
         console.error('Login error:', error);
@@ -171,11 +177,8 @@ function initLoginPage() {
         }
         
         showError(errorMsg);
-      } finally {
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const btnText = submitBtn?.querySelector('.btn-text');
-        const btnArrow = submitBtn?.querySelector('.btn-arrow');
         
+        // 登录失败，重置按钮状态
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.classList.remove('loading');

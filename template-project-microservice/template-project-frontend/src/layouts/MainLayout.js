@@ -44,7 +44,10 @@ export function createMainLayout(content) {
       </main>
       
       <footer class="main-footer">
-        <p>&copy; 2024 Template Project. All rights reserved.</p>
+        <p class="page-copyright">
+          © 2025 版权所有 | 作者：<span class="author-name">靓仔</span>
+          <span class="footer-email"> | 邮箱：<a href="mailto:weiyzhong@126.com" class="email-link">weiyzhong@126.com</a></span>
+        </p>
       </footer>
     </div>
   `;

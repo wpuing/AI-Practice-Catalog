@@ -13,7 +13,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/demo_cloud
     username: postgres
-    password: postgres
+    password: 123456
     driver-class-name: org.postgresql.Driver
     druid:
       initial-size: 5
@@ -24,6 +24,9 @@ spring:
       test-on-return: false
       test-while-idle: true
       validation-query: SELECT 1
+      # 连接失败时不立即抛出异常，允许服务启动
+      connection-error-retry-attempts: 3
+      break-after-acquire-failure: true
 
   # Redis 配置
   redis:

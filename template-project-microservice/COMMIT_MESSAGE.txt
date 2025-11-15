@@ -1,0 +1,50 @@
+=== Git提交描述和命令 ===
+
+提交信息（已合并为一个提交）:
+feat: 优化管理页面和添加完整服务层实现
+
+- 隐藏所有管理列表的ID列
+- 修复商品管理分类显示问题
+- 文件服务添加Feign客户端支持，后端查询用户名
+- 改进错误处理，提升系统稳定性
+- 添加DFS、Product、Report、User服务的完整实现
+- 包含DTO、Service、Repository、Controller等完整架构
+- 添加前端服务层封装
+
+统计: 57个文件，+4404行，-5行
+
+=== Git命令 ===
+
+# 1. 进入项目目录（从项目根目录执行）
+cd AI-Practice-Catalog/template-project-microservice/template-project-cloud
+
+# 2. 检查当前状态
+git status
+
+# 3. 查看已提交的记录（确认提交信息正确）
+git log -2 --oneline --encoding=UTF-8
+
+# 4. 查看提交详细信息（检查中文是否乱码）
+git log -1 --pretty=format:"%B" --encoding=UTF-8
+
+# 5. 提交CHANGELOG更新（如果还未提交）
+git add ../CHANGELOG.md
+git commit -m "docs: 更新CHANGELOG，添加服务层实现说明"
+
+# 6. 推送到远程仓库
+# 注意：根据实际远程分支名称选择 master 或 main
+git push origin master
+
+# 或者如果远程分支是main，使用：
+# git push origin main
+
+# 6. 如果推送失败，可能需要先拉取远程更新
+# git pull origin master --rebase
+# git push origin master
+
+# 7. 查看推送后的提交历史
+git log -3 --oneline
+
+# 8. 查看远程仓库状态
+git remote -v
+
