@@ -3,15 +3,15 @@
 提交信息（已合并为一个提交）:
 feat: 优化管理页面和添加完整服务层实现
 
-- 隐藏所有管理列表的ID列
-- 修复商品管理分类显示问题
-- 文件服务添加Feign客户端支持，后端查询用户名
-- 改进错误处理，提升系统稳定性
-- 添加DFS、Product、Report、User服务的完整实现
+- 隐藏所有管理列表的ID列（商品、用户、报表、文件管理）
+- 修复商品管理列表分类显示ID问题，改为显示分类名称或'-'
+- 文件服务添加Feign客户端支持，通过UserFeignClient调用用户服务获取用户名
+- 改进FileService错误处理，即使用户服务调用失败也不影响文件列表返回
+- 添加完整的服务层实现（DFS、Product、Report、User服务）
 - 包含DTO、Service、Repository、Controller等完整架构
-- 添加前端服务层封装
+- 添加前端服务层封装（file-service.js、product-service.js等）
 
-统计: 57个文件，+4404行，-5行
+统计: 129个文件，+11428行，-546行
 
 === Git命令 ===
 
@@ -33,14 +33,39 @@ git commit -m "docs: 更新CHANGELOG，添加服务层实现说明"
 
 # 6. 推送到远程仓库
 # 注意：根据实际远程分支名称选择 master 或 main
+
+# 如果遇到网络连接问题（Connection was reset），可以尝试以下解决方案：
+
+# 方案1: 增加 Git 缓冲区大小和超时时间（推荐）
+git config http.postBuffer 524288000
+git config http.lowSpeedLimit 0
+git config http.lowSpeedTime 999999
 git push origin master
+
+# 方案2: 如果方案1失败，尝试先拉取远程更新（处理分支分叉）
+git pull origin master --rebase
+git push origin master
+
+# 方案3: 如果仍然失败，可以尝试使用 SSH 方式（需要先配置 SSH key）
+# git remote set-url origin git@github.com:wpuing/AI-Practice-Catalog.git
+# git push origin master
+
+# 方案4: 如果需要使用代理（根据实际情况配置）
+# git config --global http.proxy http://proxy.example.com:8080
+# git config --global https.proxy https://proxy.example.com:8080
+# git push origin master
+
+# 方案5: 如果网络环境限制访问 GitHub，可以尝试：
+# - 使用 VPN 或代理工具
+# - 稍后重试（可能是临时网络问题）
+# - 使用 GitHub Desktop 或其他 Git 客户端工具
 
 # 或者如果远程分支是main，使用：
 # git push origin main
 
-# 6. 如果推送失败，可能需要先拉取远程更新
+# 注意：当前本地分支和远程分支已分叉（diverged），推送前建议先拉取：
 # git pull origin master --rebase
-# git push origin master
+# 然后再推送：git push origin master
 
 # 7. 查看推送后的提交历史
 git log -3 --oneline
